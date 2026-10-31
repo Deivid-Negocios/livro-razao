@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<base target="_blank">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- aplicativo (PWA): tela cheia no celular, ícone na tela de início -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1e3a2b" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#132a1e" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Livro Razão">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<title>Livro Razão Deivid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+
+/* Layout: capa verde de livro-razão no topo com abas de índice que "encaixam" na página; conteúdo em coluna de até 1200px; razonetes (contas em T) como peça-assinatura no lançamento e no detalhe */
+:root {
+  --bg: #f3f5f1;
+  --surface: #ffffff;
+  --surface-2: #ecf0ea;
+  --line: #d4dcd1;
+  --fg: #16201a;
+  --muted: #59675c;
+  --cover: #1e3a2b;        /* capa do livro */
+  --cover-2: #29493a;
+  --cover-fg: #f0f4ee;
+  --cover-muted: #a8bcae;
+  --accent: #9c6b12;       /* latão: seleção e foco */
+  --accent-soft: #f4e8cf;
+  --deb: #a3262d;
+  --deb-soft: #fbe8e9;
+  --cre: #2e6b38;
+  --cre-soft: #e4f0e5;
+  --warn: #875800;
+  --warn-soft: #fbefd6;
+  --cc01: #3b6db3; --cc02: #5b8e3a; --cc03: #93529f; --cc04: #c0791b;
+  --cc05: #23978a; --cc06: #737a82; --cc07: #8a6a47; --cc99: #a9adb2;
+  --f-display: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --f-ui: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-num: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1411; --surface: #161d18; --surface-2: #1d2620; --line: #2b372f;
+    --fg: #e4eae5; --muted: #97a59a; --cover: #132a1e; --cover-2: #1c3829;
+    --cover-fg: #eef3ec; --cover-muted: #9db3a4; --accent: #dcab4a; --accent-soft: #382e17;
+    --deb: #f0898e; --deb-soft: #3a2023; --cre: #84c890; --cre-soft: #1d3222;
+    --warn: #e5b55a; --warn-soft: #382d15;
+    --cc01: #6f9de0; --cc02: #8cc068; --cc03: #c389cf; --cc04: #e7a34a;
+    --cc05: #4fc4b6; --cc06: #a1a8b0; --cc07: #b99670; --cc99: #7d8288;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1411; --surface: #161d18; --surface-2: #1d2620; --line: #2b372f;
+  --fg: #e4eae5; --muted: #97a59a; --cover: #132a1e; --cover-2: #1c3829;
+  --cover-fg: #eef3ec; --cover-muted: #9db3a4; --accent: #dcab4a; --accent-soft: #382e17;
+  --deb: #f0898e; --deb-soft: #3a2023; --cre: #84c890; --cre-soft: #1d3222;
+  --warn: #e5b55a; --warn-soft: #382d15;
+  --cc01: #6f9de0; --cc02: #8cc068; --cc03: #c389cf; --cc04: #e7a34a;
+  --cc05: #4fc4b6; --cc06: #a1a8b0; --cc07: #b99670; --cc99: #7d8288;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); font-size: 14px; line-height: 1.45; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.wrap { max-width: 1200px; margin: 0 auto; padding-inline: 20px; }
+.num, td.v, th.v { font-family: var(--f-num); font-variant-numeric: tabular-nums; }
+.code { font-family: var(--f-num); color: var(--muted); font-size: 12px; }
+.pos { color: var(--cre); } .neg { color: var(--deb); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- capa ---------- */
+.cover { background: var(--cover); color: var(--cover-fg); }
+.cover .wrap { padding-block: 22px 0; }
+.cover-top { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: flex-end; justify-content: space-between; }
+.cover h1 { font-family: var(--f-display); font-weight: 400; font-size: 38px; line-height: 1; margin: 0; letter-spacing: -0.01em; }
+.cover .sub { color: var(--cover-muted); margin-top: 7px; font-size: 13px; }
+.cover .sub b { color: var(--cover-fg); font-weight: 600; }
+.filters { display: flex; gap: 8px; flex-wrap: wrap; }
+.filters select { font: inherit; background: var(--cover-2); color: var(--cover-fg); border: 1px solid transparent; border-radius: 7px; padding: 7px 10px; max-width: 100%; }
+.filters select option { background: var(--surface); color: var(--fg); }
+nav.tabs { display: flex; gap: 4px; margin-top: 20px; overflow-x: auto; scrollbar-width: none; }
+nav.tabs button { font: inherit; font-weight: 600; color: var(--cover-muted); background: transparent; border: 0; padding: 10px 16px 11px; border-radius: 9px 9px 0 0; cursor: pointer; white-space: nowrap; }
+nav.tabs button:hover { color: var(--cover-fg); background: var(--cover-2); }
+nav.tabs button[aria-selected=true] { background: var(--bg); color: var(--fg); }
+nav.tabs .badge { font-family: var(--f-num); font-size: 11px; background: var(--warn-soft); color: var(--warn); border-radius: 10px; padding: 1px 6px; margin-left: 5px; }
+nav.tabs .plus { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); color: var(--cover); font-size: 14px; line-height: 1; margin-right: 6px; font-weight: 700; }
+
+main.wrap { padding-block: 22px 56px; }
+section.view { display: grid; gap: 18px; }
+h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin: 0 0 12px; font-weight: 600; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; min-width: 0; }
+.note { font-size: 13px; color: var(--muted); max-width: 74ch; margin: 12px 0 0; }
+
+/* ---------- resultado ---------- */
+.hero { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 18px; }
+@media (max-width: 860px) { .hero { grid-template-columns: 1fr; } }
+.hero-main .lbl { font-size: 13px; color: var(--muted); }
+.hero-main .big { font-family: var(--f-num); font-size: clamp(28px, 5vw, 40px); font-weight: 500; letter-spacing: -0.02em; margin: 2px 0 2px; font-variant-numeric: tabular-nums; }
+.hero-main .ctx { font-size: 13px; color: var(--muted); }
+.side-kpis { display: grid; gap: 12px; align-content: start; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; }
+.kpi .l { font-size: 12px; color: var(--muted); }
+.kpi .n { font-family: var(--f-num); font-size: 20px; font-weight: 500; margin-top: 3px; font-variant-numeric: tabular-nums; }
+.kpi .h { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.alerts { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+
+.chart { margin-top: 14px; }
+.chart svg { width: 100%; height: auto; display: block; }
+.chart text { fill: var(--muted); font-family: var(--f-num); font-size: 11px; }
+.chart .grid { stroke: var(--line); }
+.chart .zero { stroke: var(--fg); stroke-width: 1; opacity: .7; }
+
+.ccs { display: grid; gap: 2px; }
+.ccrow { display: grid; grid-template-columns: minmax(130px, 1.1fr) minmax(0, 2fr) minmax(110px, auto); gap: 14px; align-items: center; padding: 9px 8px; border-radius: 8px; cursor: pointer; border: 1px solid transparent; background: none; font: inherit; color: inherit; text-align: left; width: 100%; }
+.ccrow:hover { background: var(--surface-2); }
+.ccrow.sel { background: var(--accent-soft); border-color: var(--accent); }
+.ccname { display: flex; align-items: center; gap: 8px; font-weight: 600; min-width: 0; }
+.ccname span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dot { width: 10px; height: 10px; border-radius: 3px; flex: none; display: inline-block; }
+.bars { display: grid; gap: 3px; }
+.bar { height: 7px; border-radius: 4px; min-width: 2px; }
+.bar.r { background: var(--cre); } .bar.d { background: var(--deb); }
+.ccval { font-family: var(--f-num); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ccval small { display: block; color: var(--muted); font-size: 11px; }
+.legend { display: flex; gap: 14px; font-size: 12px; color: var(--muted); margin-top: 10px; }
+.legend i { display: inline-block; width: 18px; height: 6px; border-radius: 3px; vertical-align: middle; margin-right: 5px; }
+@media (max-width: 560px) { .ccrow { grid-template-columns: minmax(0,1fr) auto; } .ccname { grid-column: 1 / 3; } .bars { grid-column: 1; grid-row: 2; } .ccval { grid-row: 2; } }
+
+/* ---------- tabelas ---------- */
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 7px 7px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+th { font-size: 12px; color: var(--muted); font-weight: 600; white-space: nowrap; }
+td.v, th.v { text-align: right; white-space: nowrap; font-size: 13px; }
+tr.sint td { font-weight: 600; background: var(--surface-2); }
+tr.sint.l0 td { background: var(--accent-soft); }
+tr.click { cursor: pointer; }
+tr.click:hover td { background: var(--surface-2); }
+tfoot td { font-weight: 700; border-top: 2px solid var(--fg); border-bottom: 0; }
+.ind1 { padding-left: 20px; } .ind2 { padding-left: 36px; }
+
+.chip { display: inline-block; font-size: 11px; font-weight: 600; border-radius: 10px; padding: 1px 8px; white-space: nowrap; vertical-align: 1px; }
+.chip.warn { background: var(--warn-soft); color: var(--warn); }
+.chip.ok { background: var(--cre-soft); color: var(--cre); }
+.chip.bad { background: var(--deb-soft); color: var(--deb); }
+.chip.acc { background: var(--accent-soft); color: var(--accent); }
+.chip.plain { background: var(--surface-2); color: var(--muted); }
+
+button.btn { font: inherit; font-weight: 600; background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 7px; padding: 7px 12px; cursor: pointer; }
+button.btn:hover { background: var(--surface-2); }
+button.primary { font: inherit; font-weight: 700; background: var(--cover); color: var(--cover-fg); border: 0; border-radius: 8px; padding: 11px 20px; cursor: pointer; }
+button.primary:hover { background: var(--cover-2); }
+button.primary:disabled { opacity: .45; cursor: not-allowed; }
+button.link { font: inherit; background: none; border: 0; color: var(--accent); font-weight: 600; cursor: pointer; padding: 0; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.seg button { font: inherit; background: none; color: var(--muted); border: 0; padding: 8px 12px; cursor: pointer; }
+.seg button[aria-pressed=true] { background: var(--cover); color: var(--cover-fg); font-weight: 600; }
+.row-ctrl { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+input, select, textarea { font: inherit; background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 7px; padding: 8px 10px; min-width: 0; max-width: 100%; }
+input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+
+/* ---------- diário ---------- */
+.entry { display: grid; grid-template-columns: 92px minmax(0,1fr) auto; gap: 4px 12px; padding: 11px 6px; border-bottom: 1px solid var(--line); cursor: pointer; }
+.entry:hover { background: var(--surface-2); }
+.entry .d { font-family: var(--f-num); font-size: 12px; color: var(--muted); padding-top: 2px; }
+.entry .h { font-weight: 600; overflow-wrap: anywhere; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+.entry .legs { grid-column: 2 / 4; font-family: var(--f-num); font-size: 12px; color: var(--muted); display: grid; gap: 1px; }
+.entry .legs .c { padding-left: 2.2em; }
+.entry .amt { font-family: var(--f-num); text-align: right; white-space: nowrap; }
+.entry.estornado .h, .entry.estornado .amt { text-decoration: line-through; opacity: .6; }
+@media (max-width: 540px) { .entry { grid-template-columns: 1fr auto; } .entry .d { grid-column: 1 / 3; } .entry .legs { grid-column: 1 / 3; } }
+
+/* ---------- lançar ---------- */
+.lanc { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 900px) { .lanc { grid-template-columns: 1fr; } }
+.voucher { display: grid; gap: 14px; }
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 14px; }
+.fields .full { grid-column: 1 / -1; }
+@media (max-width: 520px) { .fields { grid-template-columns: 1fr; } }
+.f { display: grid; gap: 5px; min-width: 0; }
+.f label { font-size: 12px; font-weight: 600; color: var(--muted); }
+.f input, .f select { width: 100%; }
+#n-valor { font-family: var(--f-num); font-size: 18px; }
+.sug { font-size: 13px; background: var(--accent-soft); color: var(--fg); border-radius: 8px; padding: 8px 10px; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+.sug .code { color: var(--fg); }
+.livre { display: grid; gap: 8px; }
+.prow { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1.2fr) minmax(90px, 1fr) minmax(90px, 1fr) 30px; gap: 6px; align-items: center; }
+.prow input { font-family: var(--f-num); text-align: right; }
+.prow .rm { font: inherit; background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 6px; height: 34px; cursor: pointer; }
+.prow.hd { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.prow.hd span:nth-child(3), .prow.hd span:nth-child(4) { text-align: right; }
+@media (max-width: 620px) { .prow { grid-template-columns: 1fr 1fr; } .prow .rm { grid-column: 2; } .prow.hd { display: none; } }
+.totais { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; font-family: var(--f-num); font-size: 13px; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.status { font-size: 13px; }
+.status.ok { color: var(--cre); } .status.err { color: var(--deb); }
+.offline { background: var(--warn-soft); color: var(--warn); border-radius: 8px; padding: 10px 12px; font-size: 13px; }
+
+/* razonetes */
+.ts { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 18px 16px; }
+.t { min-width: 0; }
+.t .tn { text-align: center; font-weight: 600; font-size: 13px; padding-bottom: 5px; border-bottom: 2px solid var(--fg); overflow-wrap: anywhere; }
+.t .tn .code { display: block; }
+.t .tb { display: grid; grid-template-columns: 1fr 1fr; min-height: 52px; }
+.t .tb > div { padding: 7px 8px; font-family: var(--f-num); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.t .tb > div:first-child { border-right: 2px solid var(--fg); text-align: right; }
+.t .side { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--f-ui); }
+.t .cc { text-align: center; font-size: 12px; color: var(--muted); margin-top: 4px; display: flex; gap: 6px; justify-content: center; align-items: center; }
+.t.empty-t .tn { color: var(--muted); border-bottom-style: dashed; }
+.t.empty-t .tb > div:first-child { border-right-style: dashed; }
+
+/* detalhe */
+.overlay { position: fixed; inset: 0; background: rgb(8 14 10 / 0.5); z-index: 20; display: grid; place-items: center; padding: 16px; }
+.sheet { background: var(--surface); color: var(--fg); border-radius: 12px; width: min(740px, 100%); max-height: 88vh; overflow: auto; padding: 22px; border: 1px solid var(--line); }
+.sheet .hd { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.sheet h3 { font-family: var(--f-display); font-weight: 400; font-size: 28px; margin: 2px 0 0; text-wrap: balance; overflow-wrap: anywhere; }
+.meta { display: grid; grid-template-columns: max-content minmax(0,1fr); gap: 5px 14px; font-size: 13px; margin-block: 14px 18px; }
+.meta dt { color: var(--muted); } .meta dd { margin: 0; overflow-wrap: anywhere; }
+.empty { color: var(--muted); padding: 18px 4px; }
+@media (prefers-reduced-motion: no-preference) {
+  .sheet { animation: rise .16s ease-out; }
+  @keyframes rise { from { transform: translateY(6px); opacity: .6 } to { transform: none; opacity: 1 } }
+}
+
+html, body { margin: 0; }
+.cover-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.cover-actions .ghost { font: inherit; font-weight: 600; background: var(--cover-2); color: var(--cover-fg); border: 0; border-radius: 7px; padding: 7px 12px; cursor: pointer; text-decoration: none; }
+.cover-actions .ghost:hover { filter: brightness(1.15); }
+.cover .sub .live { color: var(--cover-muted); }
+.loading { padding: 48px 4px; color: var(--muted); display: grid; gap: 10px; }
+.loading .barra { height: 6px; width: min(320px, 80%); border-radius: 3px; background: linear-gradient(90deg, var(--surface-2), var(--line), var(--surface-2)); background-size: 200% 100%; }
+@media (prefers-reduced-motion: no-preference) { .loading .barra { animation: brilho 1.2s linear infinite; } @keyframes brilho { from { background-position: 200% 0 } to { background-position: 0 0 } } }
+.erro-box { background: var(--deb-soft); color: var(--deb); border-radius: 10px; padding: 14px 16px; }
+nav.tabs .badge:empty { display: none; }
+body.sem-acesso nav.tabs, body.sem-acesso .cover-actions { display: none; }
+body.sem-acesso .cover .wrap { padding-block: 22px 18px; }
+.acesso { max-width: 460px; margin: 24px auto; display: grid; gap: 14px; }
+.acesso .f input { width: 100%; font-family: var(--f-num); letter-spacing: .04em; }
+.acesso .lembrar { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
+.acesso summary { cursor: pointer; font-size: 13px; color: var(--muted); }
+a.lnk { color: var(--accent); font-weight: 600; text-decoration: none; }
+a.lnk:hover { text-decoration: underline; }
+label .opc { font-weight: 400; color: var(--muted); }
+.vbar { height: 6px; border-radius: 3px; background: var(--deb); opacity: .75; margin-top: 5px; min-width: 2px; }
+tr.sel td { background: var(--surface-2); }
+.chip.veic { background: var(--surface-2); color: var(--fg); }
+
+/* ---------- modo simples (para o Deivid) x modo contador ---------- */
+body.simples [data-m="c"], body:not(.simples) [data-m="s"], body.simples .so-contador { display: none !important; }
+body.simples .filters { display: none; }
+body:not(.simples) nav.tabs [data-v="resumo"] { order: -1; }
+body.simples .lanc { grid-template-columns: minmax(0, 720px); }
+nav.tabs .curto { display: none; }
+@media (max-width: 540px) {
+  body.simples nav.tabs button { padding-inline: 10px; } body.simples nav.tabs .plus { margin-right: 4px; }
+  nav.tabs .longo { display: none; } nav.tabs .curto { display: inline; }
+}
+.cover-actions .ghost.modo { background: transparent; border: 1px solid var(--cover-2); color: var(--cover-muted); }
+.mais { border-top: 1px dashed var(--line); padding-top: 10px; }
+.mais summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--muted); }
+.mais .fields { margin-top: 10px; }
+/* Meus lançamentos */
+.atencao { border-color: var(--warn); }
+.atencao h2 { color: var(--warn); }
+.item-at { display: grid; grid-template-columns: 92px minmax(0, 1fr) auto; gap: 2px 12px; padding: 10px 6px; border-bottom: 1px solid var(--line); }
+.item-at:last-child { border-bottom: 0; }
+.item-at .d { font-family: var(--f-num); font-size: 12px; color: var(--muted); padding-top: 2px; }
+.item-at .h { font-weight: 600; overflow-wrap: anywhere; }
+.item-at .amt { font-family: var(--f-num); white-space: nowrap; text-align: right; }
+.item-at ul { grid-column: 2 / 4; margin: 2px 0 0; padding-left: 18px; color: var(--warn); font-size: 13px; }
+.item-at .acao { grid-column: 2 / 4; font-size: 13px; }
+@media (max-width: 540px) { .item-at { grid-template-columns: 1fr auto; } .item-at .d { grid-column: 1 / 3; } .item-at ul, .item-at .acao { grid-column: 1 / 3; } }
+.entry .info { grid-column: 2 / 4; font-size: 13px; color: var(--muted); }
+.resumo-lista { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--muted); margin: -4px 0 8px; }
+.resumo-lista b { font-family: var(--f-num); font-weight: 500; }
+/* Resumo do mês */
+.tres { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 640px) { .tres { grid-template-columns: 1fr; } }
+.neg-row { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)); gap: 10px; align-items: center; padding: 10px 6px; border-bottom: 1px solid var(--line); }
+.neg-row.hd { font-size: 12px; color: var(--muted); font-weight: 600; padding-block: 4px 8px; }
+.neg-row .v { font-family: var(--f-num); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.neg-row .nome { display: flex; gap: 8px; align-items: center; font-weight: 600; min-width: 0; }
+@media (max-width: 560px) {
+  /* celular: negócio e quanto sobrou em cima; entrou e saiu embaixo, cada valor com o nome em cima (cabe até milhão) */
+  .neg-row { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; }
+  .neg-row.hd { display: none; }
+  .neg-row .nome { grid-column: 1; grid-row: 1; }
+  .neg-row .v { font-size: 13px; }
+  .neg-row .v::before { content: attr(data-l); display: block; font: 11px var(--f-ui); color: var(--muted); }
+  .neg-row .v.sob { grid-column: 2; grid-row: 1; font-weight: 600; }
+  .neg-row .v.ent { grid-column: 1; grid-row: 2; text-align: left; }
+  .neg-row .v.sai { grid-column: 2; grid-row: 2; }
+}
+.gasto { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; padding: 7px 0; }
+.gasto .vbar { grid-column: 1 / 3; margin-top: 0; }
+.gasto .v { font-family: var(--f-num); white-space: nowrap; }
+/* ---------- logos dos negócios (versão 7) ---------- */
+.logo { width: 28px; height: 28px; border-radius: 7px; flex: none; display: inline-block; object-fit: cover; box-shadow: 0 0 0 1px var(--line); background: #fff; }
+.negs { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.negs button { font: inherit; display: flex; align-items: center; gap: 10px; text-align: left; padding: 8px 10px; min-height: 52px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; }
+.negs button:hover { background: var(--surface-2); }
+.negs button .logo { width: 34px; height: 34px; border-radius: 8px; }
+.negs button .dot { width: 34px; height: 34px; border-radius: 8px; opacity: .85; }
+.negs button span:last-child { font-weight: 600; font-size: 13px; line-height: 1.2; overflow-wrap: break-word; min-width: 0; }
+.negs button[aria-pressed=true] { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+@media (max-width: 400px) { .negs { grid-template-columns: 1fr 1fr; } }
+/* abertura: os logos entram um a um enquanto a planilha é lida */
+.abertura { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 8px; }
+.abertura img { width: 60px; height: 60px; border-radius: 14px; box-shadow: 0 0 0 1px var(--line), 0 6px 16px rgb(0 0 0 / .12); background: #fff; }
+@media (prefers-reduced-motion: no-preference) {
+  .abertura img { opacity: 0; animation: entra .5s cubic-bezier(.2, .8, .3, 1.3) forwards, onda 1.8s ease-in-out infinite; animation-delay: calc(var(--i) * 140ms), calc(700ms + var(--i) * 180ms); }
+  @keyframes entra { from { opacity: 0; transform: translateY(14px) scale(.8); } to { opacity: 1; transform: none; } }
+  @keyframes onda { 0%, 60%, 100% { translate: 0 0; } 30% { translate: 0 -6px; } }
+  .negs button[aria-pressed=true] .logo { animation: toque .28s ease-out; }
+  @keyframes toque { 50% { transform: scale(1.12); } }
+}
+.bancos { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+
+/* ---------- aplicativo instalado (PWA) ---------- */
+/* Tela cheia no iPhone: a capa verde passa por baixo da barra de status e do entalhe; o conteúdo fica fora deles */
+.cover { padding-top: env(safe-area-inset-top); }
+.wrap { padding-left: max(20px, env(safe-area-inset-left)); padding-right: max(20px, env(safe-area-inset-right)); }
+main.wrap { padding-bottom: calc(56px + env(safe-area-inset-bottom)); }
+.overlay { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+/* No celular, campo com letra menor que 16px faz o iPhone dar zoom ao tocar */
+@media (pointer: coarse) { input, select, textarea { font-size: 16px; } }
+</style>
+</head>
+<body>
+<header class="cover">
+  <div class="wrap">
+    <div class="cover-top">
+      <div>
+        <h1>Livro Razão Deivid</h1>
+        <div class="sub" id="sub">Lendo a planilha…</div>
+      </div>
+      <div class="cover-actions">
+        <div class="filters">
+          <label for="f-ano" class="sr">Período</label>
+          <select id="f-ano"><option value="">Todos os períodos</option></select>
+          <label for="f-cc" class="sr">Centro de custo</label>
+          <select id="f-cc"><option value="">Todos os centros de custo</option></select>
+        </div>
+        <button class="ghost" id="btn-atualizar" type="button">Atualizar</button>
+        <a class="ghost" id="btn-planilha" href="#" hidden>Abrir planilha</a>
+        <button class="ghost" id="btn-sair" type="button" hidden>Sair</button>
+        <button class="ghost modo" id="btn-modo" type="button" title="Troca entre o modo simples (lançar e acompanhar) e o modo contador (razão, balancete, plano de contas)">Modo contador</button>
+      </div>
+    </div>
+    <!-- data-m: s = só no modo simples, c = só no modo contador, sc = nos dois -->
+    <nav class="tabs" role="tablist" id="tabs" aria-label="Seções">
+      <button role="tab" data-v="lancar" data-m="sc" aria-selected="false"><span class="plus" aria-hidden="true">+</span>Lançar</button>
+      <button role="tab" data-v="meus" data-m="s" aria-selected="false"><span class="longo">Meus l</span><span class="curto">L</span>ançamentos<span class="badge" id="b-pend-s"></span></button>
+      <button role="tab" data-v="mes" data-m="s" aria-selected="false">Resumo<span class="longo"> do mês</span></button>
+      <button role="tab" data-v="resumo" data-m="c" aria-selected="true">Resultado</button>
+      <button role="tab" data-v="diario" data-m="c" aria-selected="false">Diário<span class="badge" id="b-pend"></span></button>
+      <button role="tab" data-v="contas" data-m="c" id="tab-contas" aria-selected="false" hidden>Contas</button>
+      <button role="tab" data-v="veiculos" data-m="c" aria-selected="false">Veículos</button>
+      <button role="tab" data-v="razao" data-m="c" aria-selected="false">Razão</button>
+      <button role="tab" data-v="balancete" data-m="c" aria-selected="false">Balancete</button>
+      <button role="tab" data-v="plano" data-m="c" aria-selected="false">Plano de contas</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="estado" class="loading"><div>Lendo os lançamentos da planilha…</div><div class="barra"></div></div>
+
+  <section class="view" id="v-acesso" hidden>
+    <form class="panel acesso" id="a-form" novalidate>
+      <h2 style="margin:0">Entrar no Livro Razão</h2>
+      <p class="note" style="margin:0">Digite a chave de acesso que o Gilberto passou. Ela é pedida uma vez neste aparelho.</p>
+      <div class="f"><label for="a-chave">Chave de acesso</label><input type="password" id="a-chave" autocomplete="current-password" placeholder="XXXXX-XXXXX-XXXXX-XXXXX"></div>
+      <label class="lembrar"><input type="checkbox" id="a-lembrar" checked> Lembrar neste aparelho</label>
+      <details>
+        <summary>Endereço da API</summary>
+        <div class="f" style="margin-top:8px"><label for="a-url">Link /exec do Apps Script</label><input type="url" id="a-url" autocomplete="off"></div>
+      </details>
+      <div class="actions"><button type="submit" class="primary" id="a-entrar">Entrar</button><span class="status" id="a-status" role="status" aria-live="polite"></span></div>
+    </form>
+  </section>
+
+  <section class="view" id="v-resumo" hidden></section>
+
+  <section class="view" id="v-lancar" hidden>
+    <div class="lanc">
+      <form class="panel voucher" id="n-form" novalidate>
+        <div class="row-ctrl" style="justify-content:space-between">
+          <h2 style="margin:0">Novo lançamento</h2>
+          <div class="seg" role="group" aria-label="Tipo de lançamento" id="n-tipo">
+            <button type="button" data-t="saida" aria-pressed="true">Saída de dinheiro</button>
+            <button type="button" data-t="entrada" aria-pressed="false">Entrada de dinheiro</button>
+          </div>
+        </div>
+        <div class="fields">
+          <div class="f"><label for="n-valor">Valor (R$)</label><input type="text" id="n-valor" inputmode="decimal" placeholder="0,00" autocomplete="off"></div>
+          <div class="f"><label for="n-data">Data</label><input type="date" id="n-data" required></div>
+          <div class="f full"><label for="n-hist">O que foi</label><input type="text" id="n-hist" list="n-hist-list" placeholder="Ex.: Diesel Shalon, Mercado, Recebimento Fretes Rural" autocomplete="off"><datalist id="n-hist-list"></datalist></div>
+          <div class="sug full" id="n-sug" hidden></div>
+          <div class="f" id="n-conta-box" hidden><label for="n-conta">Por onde o dinheiro passou</label><select id="n-conta"></select></div>
+          <div class="f full"><label for="n-cc" id="n-cc-lbl">De qual negócio <span class="opc so-contador">(centro de custo)</span></label><select id="n-cc" hidden></select><div class="negs" id="n-negs" role="group" aria-labelledby="n-cc-lbl"></div></div>
+          <div class="f"><label for="n-cat" id="n-cat-l">Tipo de gasto</label><select id="n-cat"></select></div>
+          <div class="f" id="n-veic-box" hidden><label for="n-veic">Qual veículo</label><select id="n-veic"></select></div>
+          <div class="f" id="n-parte-box" hidden><label for="n-parte">É meio a meio com o Ronei?</label><select id="n-parte"><option value="">Escolha</option><option value="0">Não, só do Deivid</option><option value="0.5">Sim, meio a meio</option></select></div>
+          <details class="full mais" id="n-mais">
+            <summary>Mais detalhes <span class="opc">(opcional)</span></summary>
+            <div class="fields">
+              <div class="f"><label for="n-cp">Pagou para / recebeu de</label><input type="text" id="n-cp" placeholder="Nome da pessoa ou empresa" autocomplete="off"></div>
+              <div class="f"><label for="n-obs">Observação</label><input type="text" id="n-obs" placeholder="Qualquer anotação" autocomplete="off"></div>
+            </div>
+          </details>
+        </div>
+        <div class="actions">
+          <button type="submit" class="primary" id="n-salvar" disabled>Lançar na planilha</button>
+          <span class="status" id="n-status" role="status" aria-live="polite"></span>
+        </div>
+      </form>
+      <div class="panel so-contador" id="n-razao-box">
+        <div class="row-ctrl" style="justify-content:space-between;margin-bottom:12px">
+          <h2 style="margin:0">Como fica no razão</h2>
+          <span id="n-check"></span>
+        </div>
+        <div class="ts" id="n-preview"></div>
+        <p class="note">Toda movimentação vira um débito e um crédito do mesmo valor. Na saída, debita a conta da categoria e credita o Caixa. Na entrada, o contrário.</p>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Últimos lançamentos da planilha</h2>
+      <div id="n-lista"></div>
+      <p class="note">Para corrigir um lançamento, abra a linha na planilha e ajuste lá. O painel mostra a mudança assim que você clicar em Atualizar.</p>
+    </div>
+  </section>
+
+  <section class="view" id="v-meus" hidden></section>
+  <section class="view" id="v-mes" hidden></section>
+  <section class="view" id="v-diario" hidden></section>
+  <section class="view" id="v-contas" hidden></section>
+  <section class="view" id="v-veiculos" hidden></section>
+  <section class="view" id="v-razao" hidden></section>
+  <section class="view" id="v-balancete" hidden></section>
+  <section class="view" id="v-plano" hidden></section>
+</main>
+
+<div class="overlay" id="ov" hidden></div>
+
+<script>
+// ================= estrutura fixa do plano de contas (contas sintéticas) =================
+const SINTETICAS = {
+  "1": "ATIVO", "1.1": "Ativo Circulante", "1.1.01": "Caixa e Bancos", "1.2": "Ativo Não Circulante",
+  "2": "PASSIVO E PATRIMÔNIO LÍQUIDO", "2.1": "Passivo", "2.3": "Patrimônio Líquido",
+  "3": "RECEITAS", "3.1": "Receitas Operacionais", "3.2": "Receitas Financeiras e Outras",
+  "4": "CUSTOS E DESPESAS", "4.1": "Custos de Produção (Estância)", "4.2": "Veículos e Transporte",
+  "4.3": "Pessoal e Serviços", "4.4": "Administrativas e Financeiras", "4.5": "Despesas Pessoais e Domésticas", "4.9": "Outras",
+};
+const TIPO_LISTAS = { "despesa": "DESPESA", "receita": "RECEITA", "bem ou direito": "ATIVO", "dívida": "PASSIVO", "divida": "PASSIVO", "abertura": "PL" };
+const TIPO_POR_DIGITO = { "1": "ATIVO", "2": "PASSIVO", "3": "RECEITA", "4": "DESPESA" };
+const CAIXA = "1.1.01";
+const A_CLASSIFICAR = "4.9.99", OUTRAS_REC = "3.2.99";
+const RONEI = "1.1.05", SEM_CONTA = "1.1.01.99";   // conta-corrente do sócio; conta de dinheiro não informada na linha
+const ehCaixa = cod => cod === CAIXA || String(cod).startsWith(CAIXA + ".");
+
+// ================= estado =================
+let C = {}, CC = {}, CC_POR_NOME = {}, CAT = {}, L = {}, LL = [], ordemContas = [];
+let VEIC = {}, VREGRAS = [];
+let CONTAS = {}, CONTA_POR_NOME = {}, EXTRATOS = [], ACONC = [];   // contas de dinheiro (coluna L), saldos de extrato, aba A conciliar
+let INFO = { planilhaUrl: "", gid: 0, hoje: "", lidoEm: "" };
+const S = { view: "resumo", ano: "", cc: "", conta: "4.2.01", busca: "", filtro: "todos", lim: 150, veic: "",
+            modo: "simples", mesM: null, buscaM: "", limM: 100, verPend: false, mesR: null };
+
+const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+const NUM = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmt = c => BRL.format(c / 100);
+const fmtn = c => c ? NUM.format(c / 100) : "";
+const fdata = s => s ? s.slice(8, 10) + "/" + s.slice(5, 7) + "/" + s.slice(0, 4) : "sem data";
+const MESES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+const esc = s => String(s ?? "").replace(/[&<>"]/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m]));
+const ancestrais = cod => { const r = []; let x = C[cod]; while (x) { r.push(x.cod); x = C[x.pai]; } return r; };
+const ccDot = cc => `<span class="dot" style="background:var(--${(cc || "cc99").toLowerCase()})"></span>`;
+// Logos dos negócios (Logos/preparar_logos.py gera esta linha). O centro de custo é achado pelo nome.
+const LOGOS = {"avante": "data:image/webp;base64,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", "trsimoes": "data:image/webp;base64,UklGRvAdAABXRUJQVlA4IOQdAACwYwCdASrAAMAAPkkejUQioaEUXB4EKASEswBrrNyvzyH/i+afVH65+Jfyv+IHWjFc7K8e3/N+xr6B/ob/W+4B+kX9+/rP5C/Fn6sP6Z/nfyZ+A38g/pP/l/xHvbeiz/MeoB/gP+p1iPoAeWN+4Hwg/tL+4PwI/z/+5/+jrAOBJ9Evg5+B/Kfz3/G/o/77+T392/83rJfhX6tOoP95+R3uf/LvtD97/v/7Ufmb8nf7TxX+Gn9x6gv4v/If7V/Yf24/Kz52vn/8L4HGj/6X/Fflz8Dvq59L/yH98/uf/E/ufpp/yvo54gH9B/pX+R/V7/h/3n//+8r4UHon+k9wH+Y/1D/Tf2/+/f8n/L/S7/M/9r/N/lZ7ffzL/B/8T/G/5f9kfsJ/lH9L/0H95/y//g/zv///8Pk7/br2Wf2o//DYTuBVLP/4kHheu7ocf/+NvbezCSY20pEjDU0CZxeoSDAQ2KbnGwJHx//+4Bg+Pztc+Gv6NjSB1vMnmmV/w7dwVyzXLaxeJjs4RzETGR32rdhHO8ZzvFtU6VlFmFFmXc+K8zs2Q3PHaTt0Sd4/p/U+b0Bo3OzSAPT+Y/CcrxHVdEkL7OI74GDD+pkgdOMF3t+smP6sP4w0UySvl6iqWWF1CDu5c5QQHu4AvdBwUdlQgEJ4pSq63+reT65kd93sfKpWYWqooXjhSOmfd4dpDHe3CDuZXkL3k03SJwsnK1OBwBmYTLGjMGX9mNiNrBzYG9ForD2zfp73avNa8ZfibQhvQ5tZul0IYg4+yZ3dDB3/zVGqka3hxX40XAP4TtxaFUyEVQf16NCSP9gHZoRvfS8tABNLP5GA7WC4crZtIawcUheqb2taOBBWcJrGWPz9+riRlOUARH3KSF62G7TS/YPXZ0x37T8WsiMFhE2rgD0gt6JGlWB+GVuiFT9mDA/wTylLo3uAIfxAi3Jvl35zpccOeTIF3DuAkzLWZOhf6mSWoWIMHXA4vkcWt69WljFvTo+MQrbEo4QKmQ14ZOfM09esfWHbF+Y8CptCwqTmN3rfKBcup2PHKmOh/oRxUs+MYTuBVLQvM4SuAAD+/vhoAAHtZnEsKyHTgcLKFwhGenoU8JHru5cwoqsXCTAyo2MS8pK9bYEt1S9nmZfjDSvw/7+ZkTLKGjN+ZC4JA/YKgJphkRsUnSsJRe5Yd6182uKa9qTDzlm3/xGUKdPwEyKk5c4nIqU81g0jJv3p80TN/VyyRvNzGscAIyeZLl83jeiPyFEuWHZFN+O0nqf8ilrZ9dnxUiLzqO71hfzYbg40Gmm+OvO1i+KGd31Xo1kq/lnQtU/yYvX012/spcCnw4G5Vj/EVB9YcOK7cpCLw7e41VZ3iGuqTeahH8d6soZ1VCwlAdxFqS7JC4CJweo+y+G7vSKPteS/u41aVm5pN2nfHYPvSRqG/dKs8JZBf3+xCCSOZ+es9ojULVFj4toXwwA787hap2KkFI/jbcXjQDdm6M53yONO4QyhYGMuMB1eB8FY1G/EEtWcEnMdaB5ZsuRubR7Z84XjYwtubtuKS1zyg/4GhCupGdgmtHBK8JJyDlwJm1EiHzcGcF2Z4Djm7s47FMP1old063uT4IRM9Fah6w6BvDw3sbHph0q9kKj1J8a5ArSK9x21zsHNkwuj5UaNdw0LySldn/k2NTlxq20ZWtocxUnkV6OuGPHBs61lGUjd7VXdkydkhjgYfmP8rFIJXMLw/xnsVu8+9NE22t+BrWI/oGwgByNmYrUUfEk+0feNfztCtnLdYmRWL796KMTBz+b2CgtOxRvYbStCXtMO49aPkkm5+igVsGGeFgp1Vyxx6dn4uPSPVmZmqBi9I8mer3L5pEczXyY8u3OskY7m5fS6nUOFZBurRnwuRJJSquyqW+loSN82ZisUahJ8ljlxOawg3Ilw8Cl0yIkeZwjHDCX/g0NrMv2MBsUsVuI6t5JQVqx0PmEw4YDQUiN32JV1EjdB3TUfJ0MLJnHEKNEpJQ0LCrJ/ynepHtunrjAM/vAqMC9kyofJN7/ebY5xljJNQIwOaqcG7h+G00yz1i+L/HkFFLYJXgayLwLx4wYPCZ6xrBGfkLx5kDnnfQcxe5XVfBby8jRB/FJfhV3fPTMwNlSLVIIK233WqnXB5GMBy/SZ+uWz9oLOIcBUf153GwkooE++ae4e2yinYJqEthlQvRT8ifQPSrpkAJH4j8+QtpvmUFcXgRHjInaDLS/FPe9OH/LB4qfg0+L4rLg7Gr+D7MDlDkQnvh+C4zTnemGOOtCDeBlC4onZGlpL9NhHEo0HKWUAaCEU803dd/tybOkD+PogMzLkUJw1mtClr4dFaIOxu0eWx9/hLrpx/h3G9gO6SJV52mdgD+72Jy3nm6foh+f3IGSaaH6chiHY4jrv3HTm1iriOsh3zz1E2mYfaT/dZekrzYbnyh5iWbNcYUkv8VsMPFltohFm6A9iQoWVIDIom2QOEIegjflS8rpjMVxKk2smqwxazKJ09e/Gm9ri1hcIZs/BE/r1Pe0hjD1o+OlQwiq8GqNuDnoMHFvK56tNNv5Po7F0u8aPOvR3M+Mkyc94bi1UXlFt71F8AgHXmBaX5Z546TZu27c0o+rEqXdClZrB4eTaeNbu8t/IpW1C3ATlfLydo4y1bdAFuhTRGdESXMaIeoQJVzhG7NoVoKYDnfbdMV9Czm71CDkqYIolVmck+Wi90T9hdk+Pd6wn/82jpvhsFw84xnomcqbpQ8IrIsvJGsVnPG+kFSWdp6Y46Oj1rUgegFcPbyN5LNqCLBLeEg6Jbw8u55YOd7nH2wOKz7W07f8Abn5+kJOW+yY4ZBiUNwsmDkGSqZ7gecH9UWtGMI5m4fnBr736/+111xCo/Dj6f9kS6//3mu9aU1hJXFcdWlfQ0vJGQkcb0Ckj473BVCbFAwdg2BAriVBxkBozzT1+wZJt+Vu2IYoF+Rrs8mCUksxNrUkTWcgkS/G97JJaUQmLlRyCYHszyjdl7XB4zrj277/xWqRv9pQ5dpE2wi4HxApyWSJse1Ud2IN2exgdaeWYc01hqFZFMG2nXYpKe60mztNVdhdroCFa/suR8CPNMjdmsVW9/Yxd0naeDUNUucYhhaHzM7kS/eHuIo7yuB/4dYoCuhc9a8A6MsQtBxppSO/DdrqPE7zZa245sOBlNx0HLP/PDO2jMYO3Nj6MHTKqd9YgxhsLF4R5MZe8/fu9fUBhC0Oe58YYMgLzUYCSg2+nfLzNxCc4htTs4Yl+wUbnx7cwGAj0T0UIFy9QSbdaFKhQDQNUE4+fWpbn5U8IIHuOtL87bM3I0lgWeplh2lY6VRfd99neAE6ddjR318KgMqsJUFjzAVvrla3+QMeBan28hl2+cOxX7qM+vpiws62zsa/2eDgEN3Pj/L8J5dqfT3HxhrGmw1mah/EvsXNEPsRYblnZGD9GT5y3VblPzDAm7JtMF7WM0bvG0E0Kcu7RyTL2GUO6qexuFtIGjoWqR+6xBAFD0f8ThafmZr5Gey3KFybV0tiM9dQDGLInfDfbF0F+zevSjiKfQmOFUuNVI3OdZaTRnXgtdbz4IRoAxko/1aFEsUDGAp1wjBUCxpcJiriFT6qEZRV+fpQg4UjkNMrY7RVAnYCCG2z5hpjqcpJ5iwG1XcNz91DczRoQAZovk1KfjGn6N2lUcRDuRSqdgeN4dHpfmdCL0hcX9KyBIXcMuZtXJeGTVp602l5wFbDEjTMtMkDJxL6TU/Rwg8mprZm+JWB7W9GPiaSf7i7CyaAJQMZY5qvdGgojg5th1SITFKKDp8F5mPj8kINzcs1VG+uzlPcAhYwGIlJeMdUHdpCrAsE9vZRy3UA0246HZJYlL7iEWObV7S7rXYXGZZz90oPcNOxaNN7B0nqXoXZ+jcXlSzQpdvdPE1DnPy3L7Uwfu+Sry0CqeuRlfDC/HDkbKkJRX6jO5SsXx1DrjpVCU14ffy2/mXMCTHUDDEOWrbvxkpp0Yg1KHv5M5SftGfhmC42AGP2wmAEb34qz4C0k9GOpowKMQ67yix57QonC/N4ZJGmXu6IS2tPsSzId4wXA5ehcXrOa3HLsNtvhlpnNd+P8s6R16Qd+9G4qHhO3qVCT+iv4O/euLj1D4Y8gKhCPExUM27wBrZvsJ4eYin/Fiqbcd9C1meA3E2MJUEHa+mw4DiCv3b27mQ5b9pI1q6t8mvOPB8i7dAHt6StUP/lvdf//GL/df+kkL3/r8qOI6AcQho+Ky6fgD7vjcsOW7aG3/ERppghY/edXtAnoMbrs4HMRuqF8ii+6SYUiw9P/Crcrv+FMsitAxUy1rJ7mRCFD+fVM9wuM13oHQvAdViqjpAE0Mg7T1aqSxnhvkiHv6O+B5am3IVwoiEQM9gBx6xR+cvYi6XrYy9ST41KPH2WsQrXKvXHeUTffzXnZdXwk5ajEmcr5VY9GwdCKt0pt0zOEJ4VvzKLVikvQFwCvRI/PoEQLebeNIsD9SiJ8nA2YjPux6T41xdcxC/i/oTewzsibCwVAh2gm+5jyYHWHEBCPITesaYdqhUexzABOdfIix30TrbjBZhCTxYXF+8dsxDzKKtt+3Whq86FHTBo00ucTS15Qefm0G1XvgXL74vmRJJ4l3mAZS5tcXIiin/SaatxTuDEHe3apeS/rG4mZI6e2bOA3bcXv/oa59PzeeT4kQMWTBrY9hfE2vq37/oRNBFz76an9xchrXPVXQFyIksiCplDMq5TaCKwqVjh/GGkUwRxnzaAscbq8NW5FrpL5ybyxwtxABX/p74vwntDfinBTDamaHB9gmo9bcm2IVP9wZz1ls91zYcrWIqc0jCnmGh0BOLHAE6/+ypbeIvNWTRcSZVhVjiOvujQM8xIf6S4FmkGyQ7mIBY5HlKLrDQuQEiC7AIRdf0+JSBrjlF9xXGvcRq78pfI3GGuN3XqcEpmChbcMANwYPzlvzLvlMq5kDgrCtg+iJC9V030ot4xffALPvIPEvvVLgZDM89Sa9iEt7zOQvjy9tjSGTU8Q/dAaWmrb9Ogn07FrsX7ngVF5w3yvJfK/lqDHO5+YSQ1UKKn1ou38DT0NutgnJs1cWg3uFh5bP3Xl64uXOV/bTo/Tg6RZY/cPKTrS2kJ2XNk/UoTKNUXbH/9C6jzvQFxRVucdjoazE24iADIimvpROxoWld5U1mLUC5yw3qFJGJNeTPwb+ya7g91p/LcQtCr4ZODhd1Jn1oEvS1ZJ+IhfiMD8TA8XQv74sfw81+NF7E9nOD3i2EfTMIXvvvQEuiQMXcfkUAEqCSAcyzBBZCpjtVeavXfbuPOq0RUlv+9WqR1tAb7fnO6u1Z2bcsvdJkjaAQoCHwYm4S9m+DNu8Lv/OlkjgXMKX10IBRsULiZNAV4oRDMVismfWLjKyjf1yByq11Kd72Yq7iJ9OVHEH9uqcuCy+BkeyABBW7JkwcbNfM95TjkjrzZn/ZH59dlmsPJgrTBcnJJSTSFoa3CohiL6/Tf/vU9p0VGgy0Auk+MH/FLKPjv3rTviPStIO0/yjalLP8hplghHu5IOzubP9FDviP+iJLY6AtKD10zEqZ7PRUFPoX7v1RiyZTmhbTFfY4aklInRU0xtZTpSZKpKSJaAz+4NBCWg3vq/rYQ3t/9qZ/flKnjpUdJXkaFfGzozYg8X2WT/3znxsLiZ6ZS3nkTPux16C851SDJSfEbLFq9VToyfz4CVpUH8Q9N0R/l5NOpDpDy2S1e7Yj4pz4F1gBP7aEEbbxKWdLUd1VeL1Bs0dfJyAiz9ZF11UrIdIwb850HLsMhn9Ree+ixFZ2MPPLEmqM4NJY+yu2dWpL1B+foQTbZirBwGQwPfyrrceqbRU11/FDUEU8pvMGXWF2JzIJ4kla0QDyLyLUFB5f3i76vcYq1i3s7Q4tkyffalVO2xk1ix1wB60zBV2o7ccSRnDiVKx9FKSE8iynyNuKyPcycl8kHLh5EjrS9U09a1xAlZ4F9tz7NSOSj9VFxVDe1K1S3cOHUfwhajLk3XksIqPy93KTRROfotto51xUVegh31Y6QrYT8z9Fv4VbUQiXiCoKBCfnXLB1R1RDyqk3DfdLKE7+LnIAFtMe02gR/azuy+L1S8/miiWJrctYhmHuzlzJv0uLoW+NbCxwNgjZbNKKPLd+0AWr46IPTX4c2iRzsVVJ9lQuqv/yr6seEhdI4g7TCKHUelQLJvfrb6KQw3TEnSs8jibWcIQaKESudRfzJ2l8EZnm3xJpuu+E8MPGqo2s0v3R9ucDw/gGodb+0yD+97BVj1AbAOTERQHmYRmHHS64/l/26apYnO4QMkjQc1dEEDO50RpZZWpZgWntlGMq5RtPscfbHEYCe1P559LB2qomRuC4MFGoukAqKvfVHYXULRcHtDwIAT1zikTFFBSq1D0RxSLFjhLqVzgk52r72L4RirijkF81dOH6cPKwfNZeXWzS+HcIjRvOqVCQIPh2Bem+jzKrgUkh7zH/keOlKczXdtkyBHEn4+vLfX4oXC5ShOf/jVjzU7wyzq71YJIFYgR4f1ll2npS5VyfURXk2PtbErPDgKjVC8JrnSBHQSCYshKVUwrzfV1vOgHqDXX/LK5JANrK+cymX0m45YSsw9r2lhINvLWfPWDuR9qXkFSX5KfQUG9Kkbh2z4uuYd4pOfKj0QzOMHGyaHK66jaULQqD+rA1wOlSo0A0WALWAfzEzD5dqHzG6bx0iA6BbKhLev2JC842uDhy9ZXsBF4QqWQ5hVbjkWrKukyRnGutvTeLKp8P248YOvAEqSQnsoxh+Ioz69ZHsmcbi0MfutNRv0zpTe3naxk+mjh7WRpwFX6spV/vhzfowr5hAHKC84Q5vlD3T0xfAbUASq69kz57dwH0UhxUdxZ2eZubvE8PyMDvgpV/mz9KX1F9Gz5W0Wgyi1dmanWwCaHxuh4xxWa2piIwu1xSsekmWlppIp6pDHFUXE0SUZpwEevIxAn6QNLO0M93uOT4k/x7czUsOFy0+bs+1Kdx4V+TgL3bnpwjeWB6JO0nvWj/tAFVrSa8hFX+izMpYeK7Gyq0+53hdwiSp9YVXJN/5NpAtezty43gKrUiunSGq7WDuNxCJUKdrjpFLrCHaEeZoqM/7bfiZOWmCYik7zJsvo/Gv8xHbEKy45EAmjVEFfMHn2G2EMDcrTDtao2ucukGx+FLoUTTV/mbvd15NF6ouhyKJDijBlxgqDzqpwOxfWYV1ZMZvcUa98e/KXWs6Ue+apj3iEqXT9WO+4pEjvlEb9RF3mDHjBvST1W23q+5abDMPHMkReqOd4i8yx8vF05VVeknycbGVx2fz0Io1QdSv9eLNfsDxI0wttgbmRgPEF3a7cNc7RImmsDvHYqiv+/MrEZeMfnx8OblEpwZ+GKzZuhwskfBxaRrIolOEF0uZmo7Hgg+XxXtfST5iLAsFsPUzob1ccxkjTHnpIofXYVuJ4agLypO+WxBrKs+fJFA+Mcj1HQIztBbA59nxk5d1iez0FX9rmtkYOfv4yGcA4Xe5ld4VI8emDbHQX8amwi0kmY02MkHZdqbBzGqTgCoAt9eHeonOcg5hFoCGaHKfkA9eQbtQgmYVmWgVNA98F0pHMlt0BA/xwrUlvOZruiHnRFlQv8BKpFH3Ri20Byi0vldTMXbUUFwFu1lp2Cv4RKRDJH3jLApGCXszU8FzqPEOIKb0KjiLyGPQNFWhfMCfGQPF2N/IDUSmOcY2NYR4L7kCjVlM9wNJM+rIDwFVZ8wpO80nnO/bGnk1XBhafmRcT9qNlHouTPUoO0g+641Pqpy9CVR/iwYFkFzru+dtvaBISNyyveIE62JrcHvv9NYl9//ik4gyTg+2AKQDn9/9qRkteXTjmLkO8DxQp/6c34cyrWZUOngi7EvxsRgsZ4qyLRmsJLV4Nj5mzHQr+kLloQZdPZRR3sDIewJcihHtX8fxvzpMC8Ye2N/e7uaOJO2FpHKlhnDo7D1VwdBXBd+hkODuTPr2ZbyGwXmt6oa2brXIO3uC1gxWmGOIYXjSMHaH/m0l1YNCc1ZTjeNky+Ot4yXgASOVFgwg4kXCELPfhJtvtutYPAOZyd2LDcXIE0PHgP+LGb8SlIF2bwZG1uh3+dzfm4x+rxRToq7hQUKvFGl/BCpOPGOcTn6tO5VFZxCcaWks6WjTMsd7s2I/ePZQSfGhRQLMJI5hRrqeV9T+kz0bMMiVOh+SXwUoagubvSHL16rIiS4mZuIZ1SQwRonngbuk63U1G2zT6DxZRneecukoZ4h3CnujnG9gcrLgZT3E9ydwQcGonAdd7OCPhPEvu5Uq82DiNVWOuk0P3wR9a+UDgUsb8s1iTSg0pV1Mg+7W/LTi3jxzm/37MjzdGp7FVfvWYk0Vvo13ghW/YTh8h5smpwxxbm/9sbUx66ogqQUu9n8n40Ef/P/6fiJyyzpr3/ePbt5gE5YQCSAHA3aOFzo7v5YV8w/HQ1LpS1Y5kSz4sFaywixhhRGX+tUtLISLVdrzot9Q0sfUyRPa2QRTA1DVq2vtUFZAknMbN4kSHld+gdBeVVkJ32tvh3bPqvEs8MdZZfi1nwT878cY+VtIIs6Jm3sWrTYHqGRcXPQGzFPu0R26YrvQZHy6mHhZxsCrjHpnXXy67kuBJNRkLNwVVexuNBPCs0klp+HXLHYawJyoqGxdzmy+Jf7AaYxtOXsw7zwZyg6OpB3hCgGkY7sOZyJFFHgOWB881OCWRVzOwWpUUL0B0GnUrXwqkJjfqA6XZ2U7cpVGUnjScJjegL/RkHsyu1JyrUtUcjBT5Nv4bJG0J9uCgrUOr4uxeW1R85yClg9qAji/Bs3BHDHtRv83XaocrT/iAaVfssadTXg07tqgYmFVOENnxhhUa12HZuGbROobqxnv0/Yv1CEgYUclF5GPGs0yZV+WmvYctB13O46dc0+tUDPo8LR5PnMFFnNLKS6Gy/byZVQ3ShXZs1tYqe6xck2Siek6L9KKXFkNfAiUf+FjpIFbIF8WyFlY6I1qP+aT+vlvn2/GtN+DUaYKRjt+jlSlhxUp9ZdAsLuKqpid0zhWuPLA6l0Htiqk01xjPY1Y7TDC66lijP3wFF2K8yxAZxji/AyxQouZsD2eu8xQD69vCtaluX6Vm9fx1fJ93yvIICWAiND6HIbrD+ElRzhYrWj9fcuHREBR3pK8PxSxufPvKcIPATx4I3GJBBK28wPg20uMbEoLDD4A/o7HmJJiFF5ldG9r/1Kt3cG8sEryqqLp9IgwYhuWlRtf+I4587x4a4NijpbKrD3dlAYpZKcH2KpvX8xV2pMZZXxoCNX3Y1elekm2TDs0M1Tz9tT2AcXeI5Vi0aHMMl/x834x2VqlnjaRr2F8FEbkDHmfgfY12stFhQNMFu2su89H6BHmnKHXobPzE4Bba7hn0RDvQk19+roQb8O0YXhLKA+d4lFRozVTipfgOEXg7S8JOyNlpbdROkLourEjCIjExFtB07Jo9p6q/x62lorCX84wJ5StUv5HIvofwnWf7otnRcEyGoYALQWMVPw1YYSgjINLZnhaIy6pmLsVeTNod8geWckZ853rvy8ULrtONUsaBftIrTrBg6tEErBRy26pm04MytrVoDP7sGxZyuITU0WGzMmUXbb+4F5AXalZX/iAaUUv63fp4mPY5GjsPANCOO0jF7LNjGll1H631iREzykm//MZpmO/D7N6dEMR/uxGFb7NipjuZsGTAnSCCsO4xIELPcv54MYfEPWCLoZvreDDfe9T+AQZazDtOBvperk11wu8OZvUAKSZPoAJDRwRiO8RtvQPRp/vJ/hqGVu2gtd5xHtTpWEiL0nwTU2CTOgEa6hDEPuKox84RdXyQ1wGkLqmWnFdCGeXQlauR53LtedrZ3LxiaKBpAdxJy6z8r8XOO6tzrFodzOTljfAiEdJRJSCt6sZT98COdc317vFvTTRfkmjj98U9x5g7RWlAw72WTMF8XuKUlQaiDrYiyxAmY2UfBm74NMpFFd9icUwZNR5xzva/4CvfR2H2/Spskssc1Z39bjyPH8zay1oicdcsH/rl6dZFUFUAnvXngiE7dxFNl9toY8Y4d0fNbkLO00VDLDs+X14SX/QM9UIjoV4PSx3nVhRIhCVNptQD890cnb78s6mrVg7F4QUU6hBH22a9+D8ctZWRsHrMFBqm0Z4senfIGhQ5Sqr6CMAAAAAAAAAAAA==", "dr": "data:image/webp;base64,UklGRiYKAABXRUJQVlA4IBoKAADwMQCdASrAAMAAPkkij0QioiGWC7SIKASEsrdwuaB1z367zXPzeRM8Vib8bdr5nX/vnqb2y/mF86b0uf5T0/+pa9ADph/8Bkq/nP+q9rP9/yMsCL7H/pfNbvL4AX43/Lf8t+Wv5Vcf5pfmBd1P+Fxi+IB+V/HF0APzj53H/X/jvPX+Uf4r/y/5L4C/5b/W/+n/dO1f6L/64f/81OUwu8Ni3zltlZrHxzc3LFO8Nim+oePhLf8LpQfFk3b7DQTUURnHGv/xjzUQIZeACyVswq7xnlfczijmfDeTWcOlnzdrc7B4Wrx/LB0rzyJnFh6iWG/P3KvdeWurbZ4xYtromiQb1icZivkU0Y9XZRgrUqIi4/xYdtKU36D2XE0Bd+LJAgtu91eoW/1GZL8jw83EgiW50vs4J2asln8OEi6RiJpZJxubOnI173WcxMzV/Nd5nfRNHLMQ6zEqhqSMKSBaDnwt/Pu1AuunedSEiktTeUO8NUMN8okB3ap/QIe9DBgaViAjducR10eqshsfXbbt9d9JKd4bx98lJgAA/v+4EADxBQ/b37l4ttji08piW8zvf0aK+O2GdCOqlBk34+0gJI7Xj4uUC5aFxtJ1NN+zL0fE+6kyVHjIRK30G1eUuoqCnXjY/FHyUtFwy19TKbYER8QzXUfs7zzYs+smTmMs0pp2AbPZFXKSmmapxuHBz0xqr9LCeRbMAtXV76uIMBJy2OcaGkd7VxYc5SwuEwDcnblu7Nfd1xNQDy6nTfxIaGRncwehQ07oVt77vqpDNk1H7K49spqlm05Pcb3iBPtOisdB7KTvfl2SDkkDuA1U77fjrJwSUNns/kEDpWPCDCJORweG3OhLaVamPUmi6MkGDMYPs+/k1VA3RbE2TAefkFgeOTYuXDrbFJvwgpPSsBRqGKidytjntweLNx9AfZADZwEn/SfwpCBtGLlfFEf6i/ALPau/0+Y7KmgxvIWJZ3fkxn3hnxrXQQ/DxQIgXhe1f8rghBQ9swOciU/nYXJn/orW79pvflTcLMQ22Kesxgw7nZkE6p0bFnUAFTqADQy3TN7I6k+tt+0tXV1XTrqnY3XXKL8gB9iPd//zMHdZRhom8oC3ktFSWeqavobxgDsunGWvlXh0yxLgrk9F0pGlrBg1FWhkTEmL3hsDF5vxR+IKaMrBLd7m/nLPajnp8ktJhD+thTX0BIpvQ/oOo4UpEYWqD38iiCZDrczY+71gsSZVdgBpcqUaElsSQf1LUNEhQU8vvE3S/Jfecw3jSRmbPj6C5/CMjZ/d5HEhDNeokIiCMLrN5DO6M6a33nzE3mdiB80i9aIX+iCgz7CgZmSdksTguv/DCKHo+G5ct2qd9cHSMze8Uls0MvqEJuPb/c99HnXFaRc1SUYexfqcyCTRBsvNAZHutDS8X24VQswo8cRUsOa8Vv2kY4hxkNEz4WHuJa7D0ORRf8OttX+ywIRCx1US3nTjqNf/xSANF6sq18EHxJaQJDVTIuusXfP6bKwaVTyfaw7Sccgp0Xhqcf0jaXhp91PqEuNVaFmKOzyaBIpjbdueYiwoq1PI6qc+thUEjunQb6FULTtwVPIEEM/xqTWhZvWXGE/zoPKLKi5RMX1e08w8Io1sOd+9pktLnngF+j75a4mzgsnnl1PUVjhSBhMJUQOT7jD7akicJ1ge/9e88l/MnErHDSeL+VTs+pf7kvKZZYDFRzfGfs/3jieCHV/86eBwUXHXDqKdxIJ6yNE+ZTz59AL0PUCG8EGIjCopRblPyoL4UetPK8f8YvA1j2eDHDDdyR2ZWMVshebrC0X4iIaMzKowFYG+0Mtv//FFpZTiXhLEDFcQJ78JxNWeGr30g1WAhYv2558qB03Fx5Azbayfie4vgzpxq5wYKvrWBGC7v8XVuIOTeg6nzGw7ca1/K6LoaLE3eCsEAoBReisgB0WOr3+zmPnbjZicEG1pmsp/A1OKyjnmphY3X8m8ZB80lAWeRblLRe3A/xmUwBhQYBDRMUgmNbD4nE9CQhgO/Q0zJHAvA6Nhr/lj+8W1sRHxSkFLNXPLTFLG8fT0xEWDz9swrsMicw3MUq15aB2JYaWBjsrW26weXZK8Qn8TxTuOGs8eIbAF2Aw9p/9T7iWY+FKuU5wrdpo3GK2yYKnga8+ZTlj+NYFp+Uo0Pw/snxVFw/IdzNLqYIrv5Bs99kSa85DPvdOTpP8poba5rixinRRRAnQR4DksWG15vc9OnDIdoYRaTN2Kk3Py0Spf37lSPMidYGryh3opo/i3yVMUUMfddSU9YyLykEGcwkfxYSQoQOzIsG6I/DuKFPesUp1JKV6Qq+oHIpYCWl7mV3EzDwRKk6ox9/GdO+5P9JQ9UvpqAdA4We3h7UIocErscWYEanYJecTNAj52PlfAB4/OYwJTovIVuUgZvnAxO6VUrne02JO8NLIdm7bwh0ScV+cnbwfPDe3l4t+jKncnqR5+g/cmQXPy8ECpstkZ3shIlRD8cAJwE6J0wnu3ikzdJYeqeOVnMJ2I3g3eXCoFoK1lHtaDJL7DqodBBQZ/Q2/u98fpNt7bBWQswjXn5emb2Xo4GYnWXmztvs7g8eszHRTrDytK5brfVY07AtXEmuAD+E8cbnjiHiVu48sL2LWR9rNlCY9W64GffIKa1xotm1ydrkqp3/XQGHLltKCNr6eRnG3kjtw8mvtj7PeRdAopKTYQLBFX4yUCrLUg7M9ZxlZZO8/ibZovZCbfuLeUBBut6g74GDv3J6UhmmwGH99HNgkjJoand/Rb8ki5FwqlW6+dv2CUdN8XHWGexWteIb/oO2chvPX2i0aU4w60jKoHDEDGkbkljW0WZAFITa4dxAcBDDLLRZmal7lfGgjdjLfc3N0aQI1UZWzPHArAfAABPB3/IEEUMdDB0Cpxsq6jPuO8OX1mX7Sp8NzVQGvRtS1lkJ7cEtJ9IEB0JE7slwSEluh6PiYp8a2N7m+gbpN/mmMF+JKnFSX9ofB+cd6IC5N/w31WyHD6FODiK/AiG9buxIntc2wnUjRoRoU0GVKWP0Dz1RNFru0fUApKomgjZ2+8XWN15TDpw/k02bqD12++1/lq9u3rT9HhT/z3UUxL44P5g2mdbYf/Zwfv6SpLdx/mT+QaIC/5gFSJ9l0VpesSXPmLqkhuwK3S+37gepiREliaGzP2O0caad4djvEHPDd3LKaHZBpxuK+7kpqgA1+35owj8b2GeWbv/3j47WXREV096qjRZWgSfWqtiaLf4ubUEwsfRPOaZM5tFamCpmk7nHQnR5jwjEoFUDqt9rAvVblWtkC+IxQUNlNmIEbYFjF9U6PlC7gHgof5TgFMcu+19JKwUZ1DkS/gQBmCUzMEVToeGGXAgzrSSpV5kIDJbEMHzzaT0v7gyWncgfRgdL6rrsuFvyAYR3LlIH0HX3cKDYHCnpmSPJZarhpwDKgAAAA=", "rural": "data:image/webp;base64,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"};
+const logoDoNegocio = nome => {
+  const n = String(nome || "").toLowerCase();
+  return /sim[oõ]es/.test(n) ? LOGOS.trsimoes : /est[aâ]ncia|fazenda/.test(n) ? LOGOS.dr : /rural/.test(n) ? LOGOS.rural : /avante/.test(n) ? LOGOS.avante : "";
+};
+const ccMarca = cc => { const u = logoDoNegocio(CC[cc]); return u ? `<img class="logo" src="${u}" alt="">` : ccDot(cc); };
+// Abertura: os logos entram um a um enquanto a planilha é lida
+document.getElementById("estado").insertAdjacentHTML("afterbegin", `<div class="abertura" aria-hidden="true">${[LOGOS.rural, LOGOS.trsimoes, LOGOS.dr, LOGOS.avante].map((u, i) => `<img src="${u}" alt="" style="--i:${i}">`).join("")}</div>`);
+const linkLinha = linha => INFO.planilhaUrl ? `${INFO.planilhaUrl}#gid=${INFO.gid}&range=A${linha}` : "";
+const $ = id => document.getElementById(id);
+const diasEntre = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 864e5);
+
+// ================= montar o modelo a partir da planilha =================
+function natureza(cod) { return cod[0] === "1" || cod[0] === "4" ? "D" : "C"; }
+function garantirConta(cod, nome, tipo) {
+  if (C[cod]) return;
+  const partes = cod.split("."), pai = partes.length > 1 ? partes.slice(0, -1).join(".") : null;
+  C[cod] = { cod, nome, tipo: tipo || TIPO_POR_DIGITO[cod[0]] || "DESPESA", nat: natureza(cod), pai, an: true };
+  let p = pai;
+  while (p && !C[p]) {
+    const pp = p.split("."), avo = pp.length > 1 ? pp.slice(0, -1).join(".") : null;
+    C[p] = { cod: p, nome: SINTETICAS[p] || "Grupo " + p, tipo: TIPO_POR_DIGITO[p[0]] || C[cod].tipo, nat: natureza(p), pai: avo, an: false };
+    p = avo;
+  }
+}
+
+function montarModelo(d) {
+  C = {}; CC = {}; CC_POR_NOME = {}; CAT = {}; L = {};
+  INFO = { planilhaUrl: d.planilhaUrl, gid: d.gid, hoje: d.hoje, lidoEm: d.lidoEm };
+  // contas de dinheiro: com a aba Listas nova, uma conta por banco; sem ela, o caixa único de antes
+  CONTAS = {}; CONTA_POR_NOME = {};
+  (d.contas || []).forEach(([nome, cod]) => { if (nome && cod) { CONTAS[cod] = nome; CONTA_POR_NOME[nome] = cod; } });
+  const porConta = Object.keys(CONTAS).length > 0;
+  if (porConta) {
+    Object.entries(CONTAS).forEach(([cod, nome]) => garantirConta(cod, nome, "ATIVO"));
+    garantirConta(SEM_CONTA, "Conta não informada", "ATIVO");
+  } else garantirConta(CAIXA, "Caixa / Conta Movimento Deivid", "ATIVO");
+  garantirConta(RONEI, "Conta-corrente Ronei", "ATIVO");
+  EXTRATOS = (d.extratos || []).map(([conta, data, saldo]) => ({ conta, data, saldo }));
+  ACONC = (d.aConciliar || []).map(([situacao, data, conta, tipo, hist, det, valor, n, sug, obs, linha]) => ({ situacao, data, conta, tipo, hist, det, valor, n, sug, obs, linha }));
+  garantirConta(A_CLASSIFICAR, "A Classificar", "DESPESA");
+  garantirConta(OUTRAS_REC, "Outras Receitas", "RECEITA");
+  d.categorias.forEach(([nome, cod, tipo]) => {
+    const t = TIPO_LISTAS[String(tipo || "").toLowerCase()] || TIPO_POR_DIGITO[cod[0]];
+    garantirConta(cod, nome, t);
+    if (C[cod].nome !== nome && C[cod].an && !ehCaixa(cod)) C[cod].nome = nome;
+    CAT[nome] = cod;
+  });
+  d.centros.forEach(([nome, cod, para]) => { CC[cod] = nome; CC_POR_NOME[nome] = cod; });
+  VEIC = {}; (d.veiculos || []).forEach(([nome, ccNome, palavras]) => { VEIC[nome] = { nome, ccNome, palavras }; });
+  VREGRAS = regrasVeiculos(Object.values(VEIC));
+  ordemContas = Object.keys(C).sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
+
+  let dataAnterior = d.hoje;
+  LL = d.lanc.map(([linha, data, hist, cred, deb, cat, cp, obs, ccNome, veic, contaNome, parte]) => {
+    const pend = [];
+    if (!data) { pend.push("sem data"); data = dataAnterior; }
+    else {
+      dataAnterior = data;
+      if (diasEntre(data, d.hoje) > 400 || diasEntre(d.hoje, data) > 31) pend.push("confira a data");
+    }
+    let conta = cat ? CAT[cat] : null;
+    if (!conta) { pend.push(cat ? `categoria fora da lista: ${cat}` : "falta a categoria"); conta = deb ? A_CLASSIFICAR : OUTRAS_REC; }
+    else if (conta === A_CLASSIFICAR) pend.push("categoria a classificar");
+    // entrada numa conta de despesa (ou saída numa de receita) quase sempre é categoria trocada; estorno e devolução são exceção
+    const ressalva = /estorn|devolu|devolv|reembols/.test(semAcento((hist || "") + " " + (obs || "")));
+    if (cred && !deb && C[conta].tipo === "DESPESA" && conta !== A_CLASSIFICAR && !ressalva) pend.push("entrada em categoria de despesa");
+    if (deb && !cred && C[conta].tipo === "RECEITA" && !ressalva) pend.push("saída em categoria de receita");
+    let cc = ccNome ? CC_POR_NOME[ccNome] : null;
+    if (conta !== "2.3.01" && (!cc || cc === "CC99")) { pend.push(ccNome && !cc ? `centro de custo fora da lista: ${ccNome}` : "centro de custo a definir"); cc = cc || "CC99"; }
+    if (conta === "2.3.01") cc = null;
+    if (cred && deb) pend.push("crédito e débito na mesma linha");
+    // por onde o dinheiro passou (coluna Conta) e quanto é do Ronei (coluna Parte do Ronei)
+    let cx = CAIXA;
+    if (porConta) {
+      cx = contaNome ? CONTA_POR_NOME[contaNome] : null;
+      if (!cx) { pend.push(contaNome ? `conta fora da lista: ${contaNome}` : "falta a conta"); cx = SEM_CONTA; }
+    }
+    const fr = Math.min(Math.max(Number(parte) || 0, 0), 1);
+    const pernas = v => {   // a parte do Ronei vai para a conta-corrente dele; o resto, para a categoria
+      const r = conta === RONEI || cx === RONEI ? 0 : Math.round(v * fr);
+      return [{ conta, cc, v: v - r }, { conta: RONEI, cc: null, v: r }].filter(x => x.v);
+    };
+    const p = [];
+    if (cred) { p.push({ conta: cx, cc: null, d: cred, c: 0 }); pernas(cred).forEach(x => p.push({ conta: x.conta, cc: x.cc, d: 0, c: x.v })); }
+    if (deb) { pernas(deb).forEach(x => p.push({ conta: x.conta, cc: x.cc, d: x.v, c: 0 })); p.push({ conta: cx, cc: null, d: 0, c: deb }); }
+    if (!cred && !deb) pend.push("falta o valor");
+    const l = { id: "L" + linha, linha, data, hist: hist || "(sem descrição)", cp, obs, cat, grp: ccNome, veic: veic || "", pend: pend.join("; ") || null, p,
+                contaNome: porConta ? (contaNome || "") : "", parte: fr, ent: !!cred && !deb };
+    l.ano = data.slice(0, 4); l.mes = data.slice(0, 7); l.valor = cred || deb;
+    L[l.id] = l; return l;
+  });
+  marcarDuplicados();
+
+  // filtros
+  const anos = [...new Set(LL.map(l => l.ano))].sort();
+  const fAno = $("f-ano");
+  const ref = S.ano || d.hoje.slice(0, 4);
+  fAno.innerHTML = `<option value="">Todos os períodos</option>` + anos.map(a => `<option value="${a}">${a}</option>`).join("");
+  S.ano = anos.includes(ref) ? ref : ""; fAno.value = S.ano;
+  $("f-cc").innerHTML = `<option value="">Todos os centros de custo</option>` + Object.entries(CC).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join("");
+  $("f-cc").value = CC[S.cc] ? S.cc : (S.cc = "");
+  if (!C[S.conta] || !C[S.conta].an) S.conta = Object.values(C).find(c => c.an && c.tipo === "DESPESA")?.cod || ordemContas[0];
+  $("tab-contas").hidden = !porConta;
+  if (!porConta && S.view === "contas") S.view = "resumo";
+  if (INFO.planilhaUrl) { const b = $("btn-planilha"); b.href = INFO.planilhaUrl + "#gid=" + INFO.gid; b.hidden = false; }
+  montarSugestoes();
+  montarFormulario();
+}
+
+// ================= possível duplicado =================
+// Mesma descrição, mesmo valor e mesmo lado: no mesmo dia (qualquer valor) ou em até 7 dias (a partir de R$ 1.000).
+// Parcelas e pagamentos parciais ficam de fora. Para liberar o par, escreva "não é duplicado" na Observação de uma das linhas.
+function marcarDuplicados() {
+  const grupos = new Map();
+  LL.forEach(l => {
+    // linhas tiradas do extrato (Observação "Extrato: ...") são movimentos distintos do banco: não entram
+    if (!l.valor || /parcial|parcela/.test(semAcento(l.hist)) || /^(extrato:|par do |soma d)/.test(semAcento(l.obs))) return;
+    const k = semAcento(l.hist) + "|" + l.valor + "|" + l.ent;
+    if (!grupos.has(k)) grupos.set(k, []);
+    grupos.get(k).push(l);
+  });
+  const liberado = l => /nao e duplicado/.test(semAcento(l.obs));
+  const marcar = (l, outra) => { const t = `possível duplicado da linha ${outra.linha}`; l.pend = l.pend ? l.pend + "; " + t : t; };
+  grupos.forEach(g => {
+    if (g.length < 2) return;
+    g.sort((a, b) => a.data.localeCompare(b.data) || a.linha - b.linha);
+    for (let i = 1; i < g.length; i++) {
+      const a = g[i - 1], b = g[i], dias = diasEntre(a.data, b.data);
+      if ((dias === 0 || (dias <= 7 && b.valor >= 100000)) && !liberado(a) && !liberado(b)) { marcar(a, b); marcar(b, a); }
+    }
+  });
+}
+
+// ================= veículos: palavras da descrição (mesma regra do Apps Script) =================
+const semAcento = s => String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim();
+function regrasVeiculos(lista) {
+  const r = [];
+  lista.forEach(v => String(v.palavras || "").split(";").map(semAcento).filter(Boolean).forEach(p => {
+    r.push({ nome: v.nome, palavra: p, rx: new RegExp("(^|[^a-z0-9])" + p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "($|[^a-z0-9])") });
+  }));
+  return r;
+}
+function acharVeiculo(desc) {
+  const d = semAcento(desc); let melhor = null, empate = false;
+  VREGRAS.forEach(r => {
+    if (!r.rx.test(d)) return;
+    if (!melhor || r.palavra.length > melhor.palavra.length) { melhor = r; empate = false; }
+    else if (r.palavra.length === melhor.palavra.length && r.nome !== melhor.nome) empate = true;
+  });
+  return melhor && !empate ? melhor.nome : "";
+}
+
+// ================= conexão com a planilha =================
+// Dentro da planilha (menu Livro Razão) existe google.script.run e o login é o do Google.
+// Aberto direto no navegador, o painel chama a API (link /exec) com a chave de acesso.
+const API_PADRAO = "https://script.google.com/macros/s/AKfycbwB2v9LOnKsozoJU2XZGZeo8rMsySuD_j5j_Qo6z5dgX6Lgp4qBUze6ZPGk_t5jlmU1/exec";
+const DENTRO_DA_PLANILHA = !!(window.google && google.script && google.script.run);
+const guardar = {
+  ler(k) { try { return localStorage.getItem(k) || sessionStorage.getItem(k); } catch (e) { return null; } },
+  gravar(k, v, lembrar) { try { (lembrar ? localStorage : sessionStorage).setItem(k, v); } catch (e) {} },
+  apagar(k) { try { localStorage.removeItem(k); sessionStorage.removeItem(k); } catch (e) {} },
+};
+const CONEXAO = { url: guardar.ler("lr-api") || API_PADRAO, chave: guardar.ler("lr-chave") || "" };
+
+function chamar(acao, dado) {
+  if (DENTRO_DA_PLANILHA) {
+    return new Promise((ok, falha) => {
+      const r = google.script.run.withSuccessHandler(ok).withFailureHandler(e => falha(new Error(e && e.message ? e.message : String(e))));
+      acao === "dados" ? r.getDados() : r.lancar(dado);
+    });
+  }
+  return fetch(CONEXAO.url, {
+    method: "POST", redirect: "follow",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },     // text/plain evita a pré-verificação de CORS
+    body: JSON.stringify({ acao, chave: CONEXAO.chave, dado }),
+  }).then(r => {
+    if (!r.ok) throw new Error(`A API respondeu com erro ${r.status}. Confira se a implantação está como "Qualquer pessoa".`);
+    return r.json().catch(() => { throw new Error('A API não respondeu em JSON. Confira o endereço e se a implantação está como "Qualquer pessoa".'); });
+  }).then(j => {
+    if (!j.ok) { const e = new Error(j.erro || "Erro desconhecido na API."); e.codigo = j.codigo; throw e; }
+    return j.data;
+  }, e => { if (e.codigo || /API/.test(e.message)) throw e; throw new Error("Não consegui falar com a API. Confira a internet e o endereço da API."); });
+}
+
+let carregando = false, ultimaLeitura = 0;
+function carregar(motivo) {
+  if (carregando) return;
+  if (!DENTRO_DA_PLANILHA && !CONEXAO.chave) { pedirAcesso(); return; }
+  carregando = true;
+  $("btn-atualizar").textContent = "Atualizando…";
+  chamar("dados").then(d => {
+    carregando = false; ultimaLeitura = Date.now();
+    $("btn-atualizar").textContent = "Atualizar";
+    try { montarModelo(d); } catch (e) { mostrarErro("Não consegui montar o painel com os dados da planilha: " + e.message); return; }
+    $("estado").hidden = true; $("v-acesso").hidden = true; document.body.classList.remove("sem-acesso");
+    $("btn-sair").hidden = DENTRO_DA_PLANILHA;
+    document.querySelectorAll("section.view").forEach(s => { if (s.id !== "v-acesso") s.hidden = s.id !== "v-" + S.view; });
+    atualizarCabecalho(); render();
+    if (motivo === "lancou") vLancar();
+  }).catch(e => {
+    carregando = false; $("btn-atualizar").textContent = "Atualizar";
+    if (e.codigo === "chave_invalida" || e.codigo === "sem_chave") { pedirAcesso(e.message); return; }
+    mostrarErro(e.message);
+  });
+}
+function mostrarErro(msg) {
+  const el = $("estado");
+  el.innerHTML = `<div class="erro-box"><b>Não foi possível ler a planilha.</b><br>${esc(msg)}<br><br>Clique em Atualizar para tentar de novo.</div>`;
+  el.hidden = false;
+}
+function pedirAcesso(msg) {
+  document.body.classList.add("sem-acesso");
+  $("estado").hidden = true;
+  document.querySelectorAll("section.view").forEach(s => s.hidden = s.id !== "v-acesso");
+  $("a-url").value = CONEXAO.url;
+  $("a-status").textContent = msg || ""; $("a-status").className = "status " + (msg ? "err" : "");
+  $("sub").textContent = "Acesso protegido por chave";
+  $("a-chave").focus();
+}
+$("a-form").addEventListener("submit", e => {
+  e.preventDefault();
+  const chave = $("a-chave").value.trim(), url = $("a-url").value.trim() || API_PADRAO;
+  if (!chave) { $("a-status").textContent = "Digite a chave de acesso."; $("a-status").className = "status err"; return; }
+  CONEXAO.chave = chave; CONEXAO.url = url;
+  const lembrar = $("a-lembrar").checked;
+  guardar.apagar("lr-chave"); guardar.gravar("lr-chave", chave, lembrar);
+  if (url !== API_PADRAO) guardar.gravar("lr-api", url, true); else guardar.apagar("lr-api");
+  $("a-status").textContent = "Conferindo…"; $("a-status").className = "status";
+  $("a-chave").value = "";
+  carregar();
+});
+$("btn-sair").onclick = () => { guardar.apagar("lr-chave"); CONEXAO.chave = ""; LL = []; C = {}; pedirAcesso("Você saiu. Digite a chave para entrar de novo."); $("btn-sair").hidden = true; };
+$("btn-atualizar").onclick = () => carregar();
+document.addEventListener("visibilitychange", () => { if (!document.hidden && ultimaLeitura && Date.now() - ultimaLeitura > 60000) carregar(); });
+
+// ================= abas e filtros =================
+$("f-ano").onchange = () => { S.ano = $("f-ano").value; render(); };
+$("f-cc").onchange = () => { S.cc = $("f-cc").value; render(); };
+const noPeriodo = l => !S.ano || l.ano === S.ano;
+const partidaNoCC = p => !S.cc || p.cc === S.cc;
+$("tabs").addEventListener("click", e => {
+  const b = e.target.closest("button[data-v]"); if (!b) return;
+  S.view = b.dataset.v;
+  document.querySelectorAll("#tabs button").forEach(x => x.setAttribute("aria-selected", x === b));
+  if (!Object.keys(C).length) return;      // ainda carregando ou na tela de acesso
+  document.querySelectorAll("section.view").forEach(s => s.hidden = s.id !== "v-" + S.view);
+  try { localStorage.setItem("lr-view", S.view); } catch (e) {}
+  render();
+});
+function abrir(v) { document.querySelector(`#tabs button[data-v="${v}"]`).click(); }
+
+// ================= modo simples (Deivid) x modo contador =================
+// O modo simples mostra só Lançar, Meus lançamentos e Resumo do mês, sem códigos de conta nem débito e crédito.
+const VIEWS_SIMPLES = ["lancar", "meus", "mes"], VIEWS_CONTADOR = ["resumo", "lancar", "diario", "contas", "veiculos", "razao", "balancete", "plano"];
+const viewOk = v => (S.modo === "simples" ? VIEWS_SIMPLES : VIEWS_CONTADOR).includes(v);
+function aplicarModo() {
+  document.body.classList.toggle("simples", S.modo === "simples");
+  $("btn-modo").textContent = S.modo === "simples" ? "Modo contador" : "Modo simples";
+  if (!viewOk(S.view)) S.view = S.modo === "simples" ? "lancar" : "resumo";
+  document.querySelectorAll("#tabs button").forEach(x => x.setAttribute("aria-selected", x.dataset.v === S.view));
+  if (!Object.keys(C).length) return;
+  document.querySelectorAll("section.view").forEach(s => { if (s.id !== "v-acesso") s.hidden = s.id !== "v-" + S.view; });
+  render();
+}
+$("btn-modo").onclick = () => {
+  S.modo = S.modo === "simples" ? "contador" : "simples";
+  try { localStorage.setItem("lr-modo", S.modo); } catch (e) {}
+  aplicarModo();
+};
+
+// pendências escritas para quem não é contador
+function pendSimples(pend) {
+  if (!pend) return [];
+  return pend.split("; ").map(p => {
+    let m;
+    if (p === "sem data") return "Falta a data.";
+    if (p === "confira a data") return "A data parece errada (muito antiga ou no futuro).";
+    if (p === "falta a categoria") return "Falta escolher o tipo de gasto ou de entrada.";
+    if ((m = p.match(/^categoria fora da lista: (.*)/))) return `O tipo "${m[1]}" não existe na lista. Escolha um da lista.`;
+    if (p === "categoria a classificar") return "Ainda falta dizer o que foi (está como A Classificar).";
+    if (p === "entrada em categoria de despesa") return "É uma entrada de dinheiro, mas o tipo escolhido é de gasto.";
+    if (p === "saída em categoria de receita") return "É uma saída de dinheiro, mas o tipo escolhido é de entrada.";
+    if (p === "centro de custo a definir") return "Falta dizer de qual negócio é.";
+    if ((m = p.match(/^centro de custo fora da lista: (.*)/))) return `O negócio "${m[1]}" não existe na lista.`;
+    if (p === "crédito e débito na mesma linha") return "A linha tem valor de entrada e de saída ao mesmo tempo. Deixe só um.";
+    if (p === "falta a conta") return "Falta dizer por onde o dinheiro passou (banco ou dinheiro).";
+    if ((m = p.match(/^conta fora da lista: (.*)/))) return `A conta "${m[1]}" não existe na lista.`;
+    if (p === "falta o valor") return "Falta o valor.";
+    if ((m = p.match(/^possível duplicado da linha (\d+)/))) return `Pode estar lançado duas vezes (veja a linha ${m[1]}). Se não for, escreva "não é duplicado" na Observação.`;
+    return p.charAt(0).toUpperCase() + p.slice(1) + ".";
+  });
+}
+const nomeNegocio = l => l.grp || "sem negócio";
+const ccDe = l => l.p.find(p => p.cc)?.cc;
+
+function atualizarCabecalho() {
+  const pend = LL.filter(l => l.pend).length;
+  $("b-pend").textContent = pend || "";
+  $("b-pend-s").textContent = pend || "";
+  const hora = INFO.lidoEm ? new Date(INFO.lidoEm).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "";
+  $("sub").innerHTML = `<b>${LL.length.toLocaleString("pt-BR")}</b> lançamentos na planilha <span class="live">· lido às ${hora}</span>`;
+}
+
+// ================= RESULTADO =================
+function vResumo() {
+  const el = $("v-resumo");
+  let rec = 0, desp = 0, aClass = 0, nAClass = 0;
+  const porMes = {}, porCC = {}, porConta = {};
+  LL.forEach(l => {
+    if (!noPeriodo(l)) return;
+    let temAC = false;
+    l.p.forEach(p => {
+      const t = C[p.conta].tipo; if (t !== "RECEITA" && t !== "DESPESA") return;
+      const k = p.cc || "CC99"; porCC[k] = porCC[k] || { r: 0, d: 0 };
+      if (t === "RECEITA") porCC[k].r += p.c - p.d; else porCC[k].d += p.d - p.c;
+      if (!partidaNoCC(p)) return;
+      porConta[p.conta] = (porConta[p.conta] || 0) + (p.c - p.d);
+      porMes[l.mes] = (porMes[l.mes] || 0) + p.c - p.d;
+      if (t === "RECEITA") rec += p.c - p.d; else desp += p.d - p.c;
+      if (p.conta === A_CLASSIFICAR) { aClass += p.d - p.c; temAC = true; }
+    });
+    if (temAC) nAClass++;
+  });
+  const res = rec - desp;
+  let caixa = 0; LL.forEach(l => l.p.forEach(p => { if (ehCaixa(p.conta)) caixa += p.d - p.c; }));
+  const fora = S.ano ? LL.filter(l => l.ano !== S.ano).length : 0;
+  const grupos = {};
+  Object.entries(porConta).forEach(([k, v]) => { (grupos[C[k].pai] = grupos[C[k].pai] || []).push([k, v]); });
+  const pct = v => rec ? (v / rec * 100).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + "%" : "";
+  let dre = "";
+  ["RECEITA", "DESPESA"].forEach(tipo => {
+    const gs = Object.keys(grupos).sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true })).filter(g => C[g].tipo === tipo); if (!gs.length) return;
+    const tot = gs.reduce((s, g) => s + grupos[g].reduce((a, [, v]) => a + v, 0), 0);
+    dre += `<tr class="sint l0"><td>${tipo === "RECEITA" ? "Receitas" : "Custos e despesas"}</td><td class="v">${fmt(Math.abs(tot))}</td><td class="v">${tipo === "RECEITA" ? "100%" : pct(-tot)}</td></tr>`;
+    gs.forEach(g => {
+      const sub = grupos[g].reduce((a, [, v]) => a + v, 0);
+      dre += `<tr class="sint"><td class="ind1"><span class="code">${g}</span> ${esc(C[g].nome)}</td><td class="v">${fmt(Math.abs(sub))}</td><td class="v">${pct(Math.abs(sub))}</td></tr>`;
+      grupos[g].sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).forEach(([k, v]) => {
+        dre += `<tr class="click" data-conta="${k}"><td class="ind2"><span class="code">${k}</span> ${esc(C[k].nome)}${k === A_CLASSIFICAR ? ` <span class="chip warn">a classificar</span>` : ""}</td><td class="v">${fmt(Math.abs(v))}</td><td class="v">${pct(Math.abs(v))}</td></tr>`;
+      });
+    });
+  });
+  const ccRows = Object.entries(porCC).sort((a, b) => (b[1].r - b[1].d) - (a[1].r - a[1].d));
+  const maxCC = Math.max(1, ...ccRows.map(([, v]) => Math.max(v.r, v.d)));
+  const filtroTxt = `${S.ano || "todos os períodos"}${S.cc ? " · " + esc(CC[S.cc]) : ""}`;
+  el.innerHTML = `
+    <div class="hero">
+      <div class="panel hero-main">
+        <div class="lbl">Resultado do período</div>
+        <div class="big ${res >= 0 ? "pos" : "neg"}">${fmt(res)}</div>
+        <div class="ctx">${filtroTxt} · receitas menos custos e despesas</div>
+        <div class="chart">${grafico(porMes)}</div>
+      </div>
+      <div class="side-kpis">
+        <div class="kpi"><div class="l">Receitas</div><div class="n pos">${fmt(rec)}</div><div class="h">${filtroTxt}</div></div>
+        <div class="kpi"><div class="l">Custos e despesas</div><div class="n neg">${fmt(desp)}</div><div class="h">${aClass ? `inclui ${fmt(aClass)} a classificar` : "tudo classificado"}</div></div>
+        <div class="kpi"><div class="l">Saldo de caixa</div><div class="n">${fmt(caixa)}</div><div class="h">${Object.keys(CONTAS).length ? "bancos + dinheiro e cheques (sem a conta com o Ronei)" : "igual à coluna Saldo da última linha"}</div></div>
+      </div>
+    </div>
+    ${(nAClass || fora) ? `<div class="alerts">
+      ${nAClass ? `<span class="chip warn">${nAClass} lançamentos em "A Classificar"</span>` : ""}
+      ${fora ? `<span class="chip warn">${fora} lançamentos de outros anos não entram neste período</span>` : ""}
+      <button class="link" data-go="pend">Ver pendências</button></div>` : ""}
+    <div class="panel">
+      <h2>Centros de custo · ${S.ano || "todos os períodos"}</h2>
+      <div class="ccs">${ccRows.map(([k, v]) => `
+        <button class="ccrow ${S.cc === k ? "sel" : ""}" data-cc="${k}" aria-pressed="${S.cc === k}">
+          <span class="ccname">${ccDot(k)}<span>${esc(CC[k] || "Sem centro")}</span></span>
+          <span class="bars"><span class="bar r" style="width:${v.r / maxCC * 100}%"></span><span class="bar d" style="width:${v.d / maxCC * 100}%"></span></span>
+          <span class="ccval ${v.r - v.d >= 0 ? "pos" : "neg"}">${fmt(v.r - v.d)}<small>${fmt(v.r)} − ${fmt(v.d)}</small></span>
+        </button>`).join("") || `<div class="empty">Nenhum lançamento de resultado neste período.</div>`}</div>
+      <div class="legend"><span><i style="background:var(--cre)"></i>Receitas</span><span><i style="background:var(--deb)"></i>Custos e despesas</span><span>Clique num centro para filtrar a página.</span></div>
+    </div>
+    <div class="panel">
+      <h2>Demonstração do resultado · ${filtroTxt}</h2>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Conta</th><th class="v">Valor</th><th class="v">% receita</th></tr></thead>
+        <tbody>${dre || `<tr><td colspan="3" class="empty">Nenhum lançamento de resultado neste filtro.</td></tr>`}</tbody>
+        <tfoot><tr><td>Resultado do período</td><td class="v ${res >= 0 ? "pos" : "neg"}">${fmt(res)}</td><td class="v">${pct(res)}</td></tr></tfoot>
+      </table></div>
+      <p class="note">Regime de caixa: compra de gado entra como custo no mês do pagamento, e o rebanho ainda não é avaliado como ativo. Financiamentos ficam fora do resultado (passivo 2.1.01).</p>
+    </div>`;
+  el.querySelectorAll("[data-cc]").forEach(b => b.onclick = () => { S.cc = S.cc === b.dataset.cc ? "" : b.dataset.cc; $("f-cc").value = S.cc; render(); });
+  el.querySelectorAll("tr[data-conta]").forEach(tr => tr.onclick = () => irRazao(tr.dataset.conta));
+  el.querySelectorAll("[data-go=pend]").forEach(b => b.onclick = () => { S.filtro = "pend"; abrir("diario"); });
+}
+function grafico(porMes) {
+  const meses = Object.keys(porMes).sort();
+  if (!meses.length) return `<div class="empty">Sem dados no período.</div>`;
+  const vals = meses.map(m => porMes[m] / 100);
+  const estreito = window.innerWidth < 600, W = estreito ? 380 : 640, H = 220, pl = estreito ? 50 : 62, pr = 6, pt = 10, pb = 26;
+  let max = Math.max(0, ...vals), min = Math.min(0, ...vals);
+  const passo = niceStep((max - min) / 4 || 1);
+  max = Math.ceil(max / passo) * passo; min = Math.floor(min / passo) * passo;
+  if (max === min) max = min + passo;
+  const y = v => pt + (max - v) / (max - min) * (H - pt - pb);
+  const bw = (W - pl - pr) / meses.length;
+  let g = "";
+  for (let v = min; v <= max + 1e-6; v += passo)
+    g += `<line class="grid" x1="${pl}" x2="${W - pr}" y1="${y(v)}" y2="${y(v)}"/><text x="${pl - 6}" y="${y(v) + 4}" text-anchor="end">${abrev(v)}</text>`;
+  meses.forEach((m, i) => {
+    const v = vals[i], w = Math.min(bw * 0.62, 46), x = pl + i * bw + (bw - w) / 2;
+    const y0 = y(Math.max(v, 0)), h = Math.abs(y(v) - y(0));
+    g += `<rect x="${x}" y="${y0}" width="${w}" height="${Math.max(h, 1)}" fill="${v >= 0 ? "var(--cre)" : "var(--deb)"}" rx="3"><title>${MESES[+m.slice(5, 7) - 1]}/${m.slice(0, 4)}: ${BRL.format(v)}</title></rect>`;
+    g += `<text x="${x + w / 2}" y="${H - 8}" text-anchor="middle">${MESES[+m.slice(5, 7) - 1]}${S.ano ? "" : "/" + m.slice(2, 4)}</text>`;
+  });
+  g += `<line class="zero" x1="${pl}" x2="${W - pr}" y1="${y(0)}" y2="${y(0)}"/>`;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Resultado mês a mês">${g}</svg>`;
+}
+function niceStep(raw) { const p = Math.pow(10, Math.floor(Math.log10(raw))); const f = raw / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p; }
+function abrev(v) { const a = Math.abs(v), s = v < 0 ? "−" : ""; return a >= 1e6 ? s + (a / 1e6).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + " mi" : a >= 1e3 ? s + Math.round(a / 1e3) + " mil" : s + Math.round(a); }
+
+// ================= BALANCETE =================
+function vBalancete() {
+  const el = $("v-balancete");
+  const tot = {}; Object.keys(C).forEach(k => tot[k] = { d: 0, c: 0 });
+  LL.forEach(l => { if (!noPeriodo(l)) return; l.p.forEach(p => { if (S.cc && p.cc !== S.cc) return; ancestrais(p.conta).forEach(a => { tot[a].d += p.d; tot[a].c += p.c; }); }); });
+  let td = 0, tc = 0;
+  const linhas = ordemContas.filter(k => tot[k].d || tot[k].c).map(k => {
+    const x = C[k], t = tot[k], saldo = x.nat === "D" ? t.d - t.c : t.c - t.d;
+    if (x.an) { td += t.d; tc += t.c; }
+    const nivel = k.split(".").length - 1;
+    const inv = x.an && saldo < 0 && (x.tipo === "ATIVO" || x.tipo === "PASSIVO");
+    const lado = saldo === 0 ? "" : (saldo > 0 ? x.nat : (x.nat === "D" ? "C" : "D"));
+    return `<tr class="${x.an ? "click" : "sint l" + nivel}" ${x.an ? `data-conta="${k}"` : ""}>
+      <td class="${nivel ? "ind" + Math.min(nivel, 2) : ""}"><span class="code">${k}</span> ${esc(x.nome)}${inv ? ` <span class="chip warn" title="Saldo contrário à natureza da conta: falta o saldo de abertura">saldo invertido</span>` : ""}</td>
+      <td class="v">${fmtn(t.d)}</td><td class="v">${fmtn(t.c)}</td>
+      <td class="v">${saldo ? NUM.format(Math.abs(saldo) / 100) + " " + lado : "—"}</td></tr>`;
+  }).join("");
+  const sum = tipo => Object.keys(C).filter(k => C[k].an && C[k].tipo === tipo).reduce((s, k) => s + (C[k].nat === "D" ? tot[k].d - tot[k].c : tot[k].c - tot[k].d), 0);
+  const at = sum("ATIVO"), pa = sum("PASSIVO"), pl = sum("PL"), re = sum("RECEITA") - sum("DESPESA");
+  el.innerHTML = `
+    <div class="panel">
+      <h2>Balancete de verificação · ${S.ano || "todos os períodos"}${S.cc ? " · " + esc(CC[S.cc]) : ""}</h2>
+      <div class="alerts">
+        <span class="chip ${td === tc ? "ok" : "bad"}">${td === tc ? "Débitos = créditos" : "Débitos ≠ créditos"} · ${fmt(td)}</span>
+        ${!S.cc ? `<span class="chip ${at === pa + pl + re ? "ok" : "bad"}">Ativo ${fmt(at)} = Passivo ${fmt(pa)} + PL ${fmt(pl)} + Resultado ${fmt(re)}</span>` : `<span class="chip plain">Com centro de custo filtrado, só as contas de resultado fecham</span>`}
+      </div>
+      <div class="tbl-wrap" style="margin-top:14px"><table>
+        <thead><tr><th>Conta</th><th class="v">Débitos</th><th class="v">Créditos</th><th class="v">Saldo</th></tr></thead>
+        <tbody>${linhas}</tbody>
+        <tfoot><tr><td>Total das contas analíticas</td><td class="v">${NUM.format(td / 100)}</td><td class="v">${NUM.format(tc / 100)}</td><td></td></tr></tfoot>
+      </table></div>
+      <p class="note">"Saldo invertido" aparece em conta de ativo ou passivo que começou sem saldo de abertura. Veículos e Máquinas, por exemplo, tem mais vendas do que compras em 2026 porque os veículos já existiam antes da planilha.</p>
+    </div>`;
+  el.querySelectorAll("tr[data-conta]").forEach(tr => tr.onclick = () => irRazao(tr.dataset.conta));
+}
+
+// ================= RAZÃO =================
+function irRazao(conta) { S.conta = conta; abrir("razao"); }
+function vRazao() {
+  const el = $("v-razao");
+  const x = C[S.conta];
+  let saldo = 0, td = 0, tc = 0; const rows = [];
+  LL.forEach(l => { if (!noPeriodo(l)) return; l.p.forEach(p => {
+    if (p.conta !== S.conta || (S.cc && p.cc !== S.cc)) return;
+    saldo += x.nat === "D" ? p.d - p.c : p.c - p.d; td += p.d; tc += p.c;
+    const contra = l.p.filter(q => q !== p && q.conta !== p.conta).map(q => q.conta);
+    rows.push(`<tr class="click" data-l="${l.id}"><td class="num">${fdata(l.data)}</td><td>${esc(l.hist)}${l.pend ? ` <span class="chip warn">pendência</span>` : ""}<div class="code">linha ${l.linha} · contrapartida ${[...new Set(contra)].map(c => c + " " + esc(C[c].nome)).join(", ")}</div></td><td>${p.cc ? ccDot(p.cc) + " " + esc(CC[p.cc]) : ""}</td><td class="v">${fmtn(p.d)}</td><td class="v">${fmtn(p.c)}</td><td class="v ${saldo < 0 ? "neg" : ""}">${NUM.format(saldo / 100)}</td></tr>`);
+  }); });
+  el.innerHTML = `
+    <div class="panel">
+      <div class="row-ctrl" style="margin-bottom:14px">
+        <label for="f-conta" class="sr">Conta</label>
+        <select id="f-conta">${Object.values(C).filter(c => c.an).sort((a, b) => a.cod.localeCompare(b.cod, "pt-BR", { numeric: true })).map(c => `<option value="${c.cod}" ${c.cod === S.conta ? "selected" : ""}>${c.cod} · ${esc(c.nome)}</option>`).join("")}</select>
+        <span class="chip plain">${x.tipo.toLowerCase()} · natureza ${x.nat === "D" ? "devedora" : "credora"}</span>
+      </div>
+      <h2>Razão · ${x.cod} ${esc(x.nome)}</h2>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Data</th><th>Histórico</th><th>Centro</th><th class="v">Débito</th><th class="v">Crédito</th><th class="v">Saldo</th></tr></thead>
+        <tbody>${rows.join("") || `<tr><td colspan="6" class="empty">Nenhum movimento nesta conta com os filtros atuais.</td></tr>`}</tbody>
+        <tfoot><tr><td colspan="3">${rows.length} movimentos</td><td class="v">${NUM.format(td / 100)}</td><td class="v">${NUM.format(tc / 100)}</td><td class="v">${NUM.format(saldo / 100)}</td></tr></tfoot>
+      </table></div>
+    </div>`;
+  $("f-conta").onchange = e => { S.conta = e.target.value; render(); };
+  el.querySelectorAll("tr[data-l]").forEach(tr => tr.onclick = () => detalhe(tr.dataset.l));
+}
+
+// ================= DIÁRIO =================
+function vDiario() {
+  const el = $("v-diario");
+  const q = S.busca.trim().toLowerCase();
+  let lista = LL.filter(l => (S.filtro === "pend" ? !!l.pend : noPeriodo(l)) && (!S.cc || l.p.some(p => p.cc === S.cc)));
+  if (q) lista = lista.filter(l => (l.hist + " " + (l.cp || "") + " " + (l.cat || "") + " " + l.veic + " " + l.contaNome).toLowerCase().includes(q) || String(l.linha) === q);
+  lista = lista.slice().reverse();
+  const vis = lista.slice(0, S.lim);
+  const pendTotal = LL.filter(l => l.pend).length;
+  el.innerHTML = `
+    <div class="panel">
+      <div class="row-ctrl" style="margin-bottom:10px">
+        <label for="f-busca" class="sr">Buscar</label>
+        <input type="search" id="f-busca" placeholder="Buscar descrição, contraparte, categoria, veículo ou nº da linha" value="${esc(S.busca)}" style="flex:1 1 260px">
+        <div class="seg" role="group" aria-label="Filtro">
+          <button data-f="todos" aria-pressed="${S.filtro === "todos"}">Todos</button>
+          <button data-f="pend" aria-pressed="${S.filtro === "pend"}">Com pendência (${pendTotal})</button>
+        </div>
+      </div>
+      <h2>${lista.length.toLocaleString("pt-BR")} lançamentos${S.filtro === "pend" ? " com pendência, todos os períodos" : ""}</h2>
+      <div>${vis.map(entrada).join("") || `<div class="empty">Nada encontrado. Tente outro termo ou limpe o filtro de centro de custo.</div>`}</div>
+      ${lista.length > vis.length ? `<div style="margin-top:12px"><button class="btn" id="mais">Mostrar mais ${Math.min(150, lista.length - vis.length)}</button></div>` : ""}
+    </div>`;
+  const b = $("f-busca");
+  b.oninput = () => { S.busca = b.value; S.lim = 150; const pos = b.selectionStart; vDiario(); const nb = $("f-busca"); nb.focus(); nb.setSelectionRange(pos, pos); };
+  el.querySelectorAll("[data-f]").forEach(x => x.onclick = () => { S.filtro = x.dataset.f; S.lim = 150; vDiario(); });
+  const m = $("mais"); if (m) m.onclick = () => { S.lim += 150; vDiario(); };
+  el.querySelectorAll(".entry").forEach(e => e.onclick = () => detalhe(e.dataset.l));
+}
+function entrada(l) {
+  const deb = l.p.filter(p => p.d), cre = l.p.filter(p => p.c);
+  const cxD = deb.some(p => ehCaixa(p.conta)), cxC = cre.some(p => ehCaixa(p.conta));
+  const cls = cxD && !cxC ? "pos" : cxC && !cxD ? "neg" : "";
+  const cc = l.p.find(p => p.cc)?.cc;
+  return `<div class="entry" data-l="${l.id}" tabindex="0">
+    <div class="d">${fdata(l.data)}</div>
+    <div class="h">${cc ? ccDot(cc) : ""}<span>${esc(l.hist)}</span>${l.veic ? `<span class="chip veic">${esc(l.veic)}</span>` : ""}${l.pend ? `<span class="chip warn">${esc(l.pend)}</span>` : ""}</div>
+    <div class="amt ${cls}">${fmt(l.valor)}</div>
+    <div class="legs">${deb.map(p => `<div>D ${p.conta} ${esc(C[p.conta].nome)}</div>`).join("")}${cre.map(p => `<div class="c">C ${p.conta} ${esc(C[p.conta].nome)}</div>`).join("")}</div>
+  </div>`;
+}
+
+// ================= VEÍCULOS =================
+const GRUPO_VEIC = { "Combustível": "comb", "Manutenção de Veículos e Máquinas": "manut", "Pedágios": "ped" };
+function vVeiculos() {
+  const el = $("v-veiculos");
+  const T = {};
+  Object.keys(VEIC).forEach(n => T[n] = { comb: 0, manut: 0, ped: 0, outras: 0, fora: 0, n: 0, ult: "" });
+  let semCadastro = 0;
+  LL.forEach(l => {
+    if (!l.veic || !noPeriodo(l) || (S.cc && !l.p.some(p => p.cc === S.cc))) return;
+    const t = T[l.veic] || (T[l.veic] = { comb: 0, manut: 0, ped: 0, outras: 0, fora: 0, n: 0, ult: "", fora_lista: true });
+    if (t.fora_lista) semCadastro++;
+    t.n++; if (l.data > t.ult) t.ult = l.data;
+    l.p.forEach(p => {
+      if (ehCaixa(p.conta) || p.conta === RONEI) return;   // dinheiro e parte do Ronei não são gasto do veículo
+      const x = C[p.conta], v = p.d - p.c;
+      if (x.tipo === "DESPESA") t[GRUPO_VEIC[l.cat] || "outras"] += v;
+      else t.fora += v;
+    });
+  });
+  const linhas = Object.entries(T).map(([nome, t]) => ({ ...t, nome, tot: t.comb + t.manut + t.ped + t.outras }))
+    .filter(r => r.n).sort((a, b) => b.tot - a.tot);
+  const max = Math.max(1, ...linhas.map(r => r.tot));
+  const tot = k => linhas.reduce((s, r) => s + r[k], 0);
+  const filtroTxt = `${S.ano || "todos os períodos"}${S.cc ? " · " + esc(CC[S.cc]) : ""}`;
+  if (S.veic && !T[S.veic]) S.veic = "";
+  const sel = S.veic ? LL.filter(l => l.veic === S.veic && noPeriodo(l) && (!S.cc || l.p.some(p => p.cc === S.cc))).slice().reverse() : [];
+  const cell = v => `<td class="v">${v ? fmtn(v) : "—"}</td>`;
+  el.innerHTML = `
+    <div class="panel">
+      <h2>Gastos por veículo · ${filtroTxt}</h2>
+      ${linhas.length ? `<div class="tbl-wrap"><table>
+        <thead><tr><th>Veículo</th><th class="v">Combustível</th><th class="v">Manutenção</th><th class="v">Pedágios</th><th class="v">Outras despesas</th><th class="v">Total de despesas</th><th class="v">Lançamentos</th></tr></thead>
+        <tbody>${linhas.map(r => `<tr class="click ${S.veic === r.nome ? "sel" : ""}" data-veic="${esc(r.nome)}">
+          <td><b>${esc(r.nome)}</b><div class="code">${[VEIC[r.nome]?.ccNome ? esc(VEIC[r.nome].ccNome) : (r.fora_lista ? "fora da lista de veículos" : ""), r.fora ? `${fmt(Math.abs(r.fora))} fora do resultado (compra, venda, financiamento)` : ""].filter(Boolean).join(" · ")}</div></td>
+          ${cell(r.comb)}${cell(r.manut)}${cell(r.ped)}${cell(r.outras)}
+          <td class="v"><b>${fmt(r.tot)}</b><div class="vbar" style="width:${Math.max(r.tot, 0) / max * 100}%;margin-left:auto"></div></td>
+          <td class="v">${r.n}</td></tr>`).join("")}</tbody>
+        <tfoot><tr><td>Total</td>${cell(tot("comb"))}${cell(tot("manut"))}${cell(tot("ped"))}${cell(tot("outras"))}<td class="v">${fmt(tot("tot"))}</td><td class="v">${tot("n")}</td></tr></tfoot>
+      </table></div>` : `<div class="empty">Nenhum lançamento com veículo neste filtro. Na planilha, preencha a coluna Veículo (ou rode "Preencher veículos pelo histórico" no menu Livro Razão).</div>`}
+      <p class="note">Conta só os lançamentos com a coluna Veículo preenchida. Compra, venda e financiamento do veículo não são despesa: aparecem à parte, embaixo do nome. Clique num veículo para ver os lançamentos.</p>
+    </div>
+    ${S.veic ? `<div class="panel">
+      <div class="row-ctrl" style="justify-content:space-between;margin-bottom:8px"><h2 style="margin:0">${esc(S.veic)} · ${sel.length} lançamentos · ${filtroTxt}</h2><button class="btn" id="v-limpar">Fechar</button></div>
+      <div>${sel.map(entrada).join("")}</div>
+    </div>` : ""}`;
+  el.querySelectorAll("tr[data-veic]").forEach(tr => tr.onclick = () => { S.veic = S.veic === tr.dataset.veic ? "" : tr.dataset.veic; vVeiculos(); });
+  const lb = $("v-limpar"); if (lb) lb.onclick = () => { S.veic = ""; vVeiculos(); };
+  el.querySelectorAll(".entry").forEach(e => e.onclick = () => detalhe(e.dataset.l));
+}
+
+// ================= CONTAS (bancos x extrato) =================
+// Saldo de cada conta na planilha, mês a mês, contra o saldo do extrato (aba Extratos) e o que falta conciliar (aba A conciliar).
+// Planilha + A conciliar = extrato quando tudo do banco está na planilha ou na fila. Não usa o filtro de período: saldo é acumulado.
+function vContas() {
+  const el = $("v-contas");
+  const pendente = a => !/^resolvid/.test(semAcento(a.situacao));
+  const fimMes = m => { const [y, mm] = m.split("-").map(Number); return new Date(y, mm, 0).toLocaleDateString("sv-SE"); };
+  const meses = [...new Set([...LL.map(l => l.mes), ...EXTRATOS.map(e => String(e.data).slice(0, 7))])].filter(Boolean).sort();
+  const lista = Object.entries(CONTAS).filter(([cod]) => cod !== RONEI);
+  if (!S.contaSel || !CONTAS[S.contaSel] || S.contaSel === RONEI) S.contaSel = lista.find(([cod, n]) => /bradesco cc/i.test(n))?.[0] || lista[0]?.[0];
+  const mov = {};   // mov[conta][mês] = entradas - saídas
+  LL.forEach(l => l.p.forEach(p => { if (CONTAS[p.conta] || p.conta === SEM_CONTA) { (mov[p.conta] = mov[p.conta] || {})[l.mes] = ((mov[p.conta] || {})[l.mes] || 0) + p.d - p.c; } }));
+  const saldoAte = (cod, m) => Object.entries(mov[cod] || {}).reduce((s, [mm, v]) => mm <= m ? s + v : s, 0);
+  const ext = (nome, m) => { const e = EXTRATOS.filter(x => x.conta === nome && String(x.data).slice(0, 7) === m).sort((a, b) => String(b.data).localeCompare(String(a.data)))[0]; return e ? e.saldo : null; };
+  const ultExt = nome => EXTRATOS.filter(x => x.conta === nome).sort((a, b) => String(b.data).localeCompare(String(a.data)))[0] || null;
+  const acAte = (nome, data) => ACONC.filter(a => a.conta === nome && pendente(a) && String(a.data) <= data).reduce((s, a) => s + a.valor, 0);
+  const acQtd = nome => ACONC.filter(a => a.conta === nome && pendente(a)).length;
+  const saldoConta = cod => LL.reduce((s, l) => s + l.p.reduce((t, p) => p.conta === cod ? t + p.d - p.c : t, 0), 0);
+  const linhas = lista.map(([cod, nome]) => {
+    const e = ultExt(nome), sp = saldoConta(cod);
+    const spData = e ? saldoAte(cod, String(e.data).slice(0, 7)) : sp, ac = e ? acAte(nome, String(e.data)) : 0;
+    const dif = e ? spData + ac - e.saldo : null;
+    return `<tr class="click ${S.contaSel === cod ? "sel" : ""}" data-cx="${cod}">
+      <td><b>${esc(nome)}</b><div class="code">${cod}</div></td>
+      <td class="v ${sp < 0 ? "neg" : ""}">${fmt(sp)}</td>
+      <td class="v">${acQtd(nome) ? `${fmt(acAte(nome, "9999"))}<div class="code">${acQtd(nome)} itens</div>` : "—"}</td>
+      <td class="v">${e ? fmt(e.saldo) + `<div class="code">${fdata(String(e.data))}</div>` : `<span class="code">sem extrato</span>`}</td>
+      <td class="v">${dif === null ? "—" : Math.abs(dif) < 100 ? `<span class="chip ok">bate</span>` : `<span class="chip bad">${fmt(dif)}</span>`}</td></tr>`;
+  }).join("");
+  const semConta = saldoConta(SEM_CONTA), ronei = saldoConta(RONEI), transf = saldoConta("1.1.04");
+  const nomeSel = CONTAS[S.contaSel] || "";
+  const mesesSel = meses.filter(m => mov[S.contaSel]?.[m] !== undefined || ext(nomeSel, m) !== null);
+  const det = mesesSel.map(m => {
+    const sp = saldoAte(S.contaSel, m), e = ext(nomeSel, m), ac = acAte(nomeSel, fimMes(m)), dif = e === null ? null : sp + ac - e;
+    return `<tr><td>${MESES[+m.slice(5, 7) - 1]}/${m.slice(0, 4)}</td><td class="v">${fmtn(mov[S.contaSel]?.[m] || 0) || "0,00"}</td><td class="v">${NUM.format(sp / 100)}</td>
+      <td class="v">${ac ? NUM.format(ac / 100) : "—"}</td><td class="v">${e === null ? "—" : NUM.format(e / 100)}</td>
+      <td class="v">${dif === null ? "—" : Math.abs(dif) < 100 ? `<span class="chip ok">bate</span>` : `<span class="chip bad">${NUM.format(dif / 100)}</span>`}</td></tr>`;
+  }).join("");
+  const fila = ACONC.filter(a => a.conta === nomeSel && pendente(a)).sort((a, b) => Math.abs(b.valor) - Math.abs(a.valor)).slice(0, 40);
+  el.innerHTML = `
+    <div class="panel">
+      <h2>Contas · planilha x extrato do banco</h2>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Conta</th><th class="v">Saldo na planilha</th><th class="v">A conciliar</th><th class="v">Último extrato</th><th class="v">Planilha + A conciliar − extrato</th></tr></thead>
+        <tbody>${linhas}</tbody>
+      </table></div>
+      <div class="alerts" style="margin-top:12px">
+        <span class="chip ${ronei >= 0 ? "acc" : "warn"}">Conta-corrente Ronei: ${fmt(Math.abs(ronei))} ${ronei >= 0 ? "a receber do Ronei" : "a pagar ao Ronei"}</span>
+        <span class="chip ${Math.abs(transf) < 100 ? "ok" : "warn"}">Transferências em aberto: ${fmt(transf)}</span>
+        ${semConta ? `<span class="chip warn">Sem conta informada: ${fmt(semConta)}</span>` : ""}
+      </div>
+      <p class="note">"Bate" quer dizer: o saldo da planilha mais os itens que ainda estão na aba A conciliar é igual ao extrato. Cada item resolvido na aba A conciliar (lançado ou ligado a uma linha, com Situação "Resolvido") sai da fila. "Dinheiro e cheques" não tem extrato: o saldo dele só fica certo quando a fila acabar, porque hoje ele guarda os lançamentos que não foram achados no banco.</p>
+    </div>
+    ${S.contaSel ? `<div class="panel">
+      <h2>${esc(nomeSel)} · mês a mês</h2>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Mês</th><th class="v">Movimento</th><th class="v">Saldo planilha</th><th class="v">A conciliar até o mês</th><th class="v">Extrato</th><th class="v">Diferença</th></tr></thead>
+        <tbody>${det || `<tr><td colspan="6" class="empty">Sem movimento nesta conta.</td></tr>`}</tbody>
+      </table></div>
+    </div>
+    <div class="panel">
+      <h2>${esc(nomeSel)} · maiores itens a conciliar (${acQtd(nomeSel)})</h2>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Data</th><th>Histórico no banco</th><th>Linha sugerida</th><th class="v">Valor</th></tr></thead>
+        <tbody>${fila.map(a => `<tr><td class="num">${fdata(String(a.data))}</td><td>${esc(a.hist)}<div class="code">${esc(a.det)}</div></td><td>${esc(a.sug || "")}</td><td class="v ${a.valor < 0 ? "neg" : "pos"}">${NUM.format(a.valor / 100)}</td></tr>`).join("") || `<tr><td colspan="4" class="empty">Nada a conciliar nesta conta.</td></tr>`}</tbody>
+      </table></div>
+      <p class="note">Para resolver um item: se ele já está na planilha numa linha com a conta "Dinheiro e cheques", troque a conta da linha para ${esc(nomeSel)}; se não está, lance. Depois marque "Resolvido" na coluna Situação da aba A conciliar.</p>
+    </div>` : ""}`;
+  el.querySelectorAll("tr[data-cx]").forEach(tr => tr.onclick = () => { S.contaSel = tr.dataset.cx; vContas(); });
+}
+
+// ================= PLANO DE CONTAS =================
+function vPlano() {
+  const el = $("v-plano");
+  const uso = {}; LL.forEach(l => l.p.forEach(p => uso[p.conta] = (uso[p.conta] || 0) + 1));
+  const catDe = {}; Object.entries(CAT).forEach(([n, c]) => catDe[c] = n);
+  el.innerHTML = `<div class="panel"><h2>Plano de contas gerencial</h2>
+    <div class="tbl-wrap"><table><thead><tr><th>Conta</th><th>Tipo</th><th>Natureza</th><th class="v">Partidas</th></tr></thead><tbody>
+    ${ordemContas.map(k => { const x = C[k], n = k.split(".").length - 1;
+      return `<tr class="${x.an ? "click" : "sint l" + n}" ${x.an ? `data-conta="${k}"` : ""}><td class="${n ? "ind" + Math.min(n, 2) : ""}"><span class="code">${k}</span> ${esc(x.nome)}</td><td>${x.tipo.toLowerCase()}</td><td>${x.nat === "D" ? "devedora" : "credora"}</td><td class="v">${x.an ? (uso[k] || 0) : ""}</td></tr>`; }).join("")}
+    </tbody></table></div>
+    <p class="note">As categorias e os centros de custo vêm da aba Listas da planilha. Para criar uma categoria nova, acrescente uma linha lá com o nome e o código da conta (por exemplo 4.5.10).</p>
+    <h2 style="margin-top:20px">Centros de custo</h2>
+    <div class="row-ctrl">${Object.entries(CC).map(([k, v]) => `<span class="chip plain">${ccDot(k)} ${esc(v)}</span>`).join("")}</div></div>`;
+  el.querySelectorAll("tr[data-conta]").forEach(tr => tr.onclick = () => irRazao(tr.dataset.conta));
+}
+
+// ================= DETALHE =================
+const ov = $("ov");
+function razonetes(partidas) {
+  return partidas.map(p => {
+    const c = C[p.conta];
+    if (!c) return `<div class="t empty-t"><div class="tn">escolha a categoria</div><div class="tb"><div></div><div></div></div></div>`;
+    return `<div class="t"><div class="tn"><span class="code">${p.conta}</span>${esc(c.nome)}</div>
+      <div class="tb"><div><div class="side">débito</div>${p.d ? NUM.format(p.d / 100) : ""}</div><div><div class="side">crédito</div>${p.c ? NUM.format(p.c / 100) : ""}</div></div>
+      <div class="cc">${p.cc ? ccDot(p.cc) + esc(CC[p.cc]) : "sem centro de custo"}</div></div>`;
+  }).join("");
+}
+function detalhe(id) {
+  const l = L[id]; if (!l) return;
+  const link = linkLinha(l.linha);
+  ov.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="dt">
+    <div class="hd"><div><div class="code">${fdata(l.data)} · linha ${l.linha}</div><h3 id="dt">${esc(l.hist)}</h3></div><button class="btn" id="fechar">Fechar</button></div>
+    ${S.modo === "simples" ? `<dl class="meta">
+      <dt>${l.ent ? "Entrou" : "Saiu"}</dt><dd class="num ${l.ent ? "pos" : "neg"}">${fmt(l.valor)}</dd>
+      <dt>Negócio</dt><dd>${esc(l.grp || "—")}</dd>
+      <dt>Tipo</dt><dd>${esc(l.cat || "—")}</dd>
+      ${l.contaNome ? `<dt>Por onde passou</dt><dd>${esc(l.contaNome)}</dd>` : ""}
+      ${l.veic ? `<dt>Veículo</dt><dd>${esc(l.veic)}</dd>` : ""}
+      ${l.parte ? `<dt>Sociedade</dt><dd>Meio a meio com o Ronei: ${fmt(l.valor - Math.round(l.valor * l.parte))} do Deivid</dd>` : ""}
+      ${l.cp ? `<dt>Pagou para / recebeu de</dt><dd>${esc(l.cp)}</dd>` : ""}
+      ${l.obs ? `<dt>Observação</dt><dd>${esc(l.obs)}</dd>` : ""}
+      ${l.pend ? `<dt>Confira</dt><dd>${pendSimples(l.pend).map(t => `<div class="chip warn" style="white-space:normal">${esc(t)}</div>`).join(" ")}</dd>` : ""}
+      ${link ? `<dt>Planilha</dt><dd><a class="lnk" href="${esc(link)}" target="_blank" rel="noopener">Abrir a linha ${l.linha} para corrigir</a></dd>` : ""}
+    </dl></div>` : `<dl class="meta">
+      <dt>Valor</dt><dd class="num">${fmt(l.valor)}</dd>
+      <dt>Categoria</dt><dd>${esc(l.cat || "—")}</dd>
+      <dt>Centro de custo</dt><dd>${esc(l.grp || "—")}</dd>
+      ${l.veic ? `<dt>Veículo</dt><dd>${esc(l.veic)}</dd>` : ""}
+      ${l.contaNome ? `<dt>Conta</dt><dd>${esc(l.contaNome)}</dd>` : ""}
+      ${l.parte ? `<dt>Parte do Ronei</dt><dd>${Math.round(l.parte * 100)}% (${fmt(Math.round(l.valor * l.parte))}); do Deivid: ${fmt(l.valor - Math.round(l.valor * l.parte))}</dd>` : ""}
+      ${l.cp ? `<dt>Contraparte</dt><dd>${esc(l.cp)}</dd>` : ""}
+      ${l.obs ? `<dt>Observação</dt><dd>${esc(l.obs)}</dd>` : ""}
+      ${l.pend ? `<dt>Pendência</dt><dd><span class="chip warn">${esc(l.pend)}</span></dd>` : ""}
+      ${link ? `<dt>Planilha</dt><dd><a class="lnk" href="${esc(link)}">Abrir a linha ${l.linha} para corrigir</a></dd>` : ""}
+    </dl>
+    <div class="ts">${razonetes(l.p)}</div></div>`}`;
+  ov.hidden = false;
+  const f = $("fechar"); f.focus(); f.onclick = fechar;
+}
+function fechar() { ov.hidden = true; ov.innerHTML = ""; }
+ov.addEventListener("click", e => { if (e.target === ov) fechar(); });
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && !ov.hidden) fechar();
+  if (e.key === "Enter" && e.target.classList?.contains("entry")) detalhe(e.target.dataset.l);
+});
+
+// ================= LANÇAR =================
+const F = { tipo: "saida", tocou: false, salvando: false, tocouVeic: false, tocouParte: false };
+const CATS_VEICULO = ["Combustível", "Manutenção de Veículos e Máquinas", "Pedágios", "Seguros", "Veículos e Máquinas"];
+const ehEstancia = ccNome => /estancia/.test(semAcento(ccNome));
+// Veículo só aparece em gasto de veículo; "meio a meio com o Ronei" só na Estância (sociedade)
+function ajustarCampos() {
+  $("n-cat-l").textContent = F.tipo === "saida" ? "Tipo de gasto" : "Tipo de entrada";
+  const veicVisivel = CATS_VEICULO.includes($("n-cat").value) || !!$("n-veic").value;
+  $("n-veic-box").hidden = !veicVisivel;
+  const parteVisivel = Object.keys(CONTAS).length > 0 && ehEstancia($("n-cc").value);
+  $("n-parte-box").hidden = !parteVisivel;
+  if (!parteVisivel) { $("n-parte").value = ""; F.tocouParte = false; }
+}
+const norm = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[0-9]/g, " ").replace(/[^a-z ]/g, " ").replace(/\s+/g, " ").trim();
+let SUG = new Map();
+function montarSugestoes() {
+  SUG = new Map(); const freq = new Map();
+  LL.forEach(l => {
+    if (!l.cat || CAT[l.cat] === A_CLASSIFICAR || !CAT[l.cat]) return;
+    const lado = l.ent ? "entrada" : "saida", k = norm(l.hist); if (!k) return;
+    const e = SUG.get(k) || { entrada: {}, saida: {}, parte: { entrada: {}, saida: {} } }; SUG.set(k, e);
+    const chave = l.cat + "|" + (l.grp || "");
+    e[lado][chave] = (e[lado][chave] || 0) + 1;
+    if (ehEstancia(l.grp)) { const pt = l.parte ? "0.5" : "0"; e.parte[lado][pt] = (e.parte[lado][pt] || 0) + 1; }
+    freq.set(l.hist.trim(), (freq.get(l.hist.trim()) || 0) + 1);
+  });
+  $("n-hist-list").innerHTML = [...freq.entries()].sort((a, b) => b[1] - a[1]).slice(0, 500).map(([h]) => `<option value="${esc(h)}">`).join("");
+}
+function sugerir(hist, lado) {
+  const q = norm(hist); if (q.length < 3) return null;
+  const agg = {}, pts = {};
+  for (const [k, e] of SUG) {
+    if (!(k === q || (k.startsWith(q) && q.length >= 4) || (q.startsWith(k) && k.length >= 4))) continue;
+    const peso = k === q ? 3 : 1;
+    Object.entries(e[lado]).forEach(([ch, n]) => agg[ch] = (agg[ch] || 0) + n * peso);
+    Object.entries(e.parte[lado]).forEach(([pt, n]) => pts[pt] = (pts[pt] || 0) + n * peso);
+  }
+  const best = Object.entries(agg).sort((a, b) => b[1] - a[1])[0]; if (!best) return null;
+  const [cat, cc] = best[0].split("|");
+  const pt = ehEstancia(cc) ? (Object.entries(pts).sort((a, b) => b[1] - a[1])[0] || [""])[0] : "";
+  return { cat, cc, pt };
+}
+function parseValor(s) {
+  s = String(s || "").replace(/[R$\s]/g, ""); if (!s) return 0;
+  if (s.includes(",")) s = s.replace(/\./g, "").replace(",", ".");
+  const v = Number(s); return isFinite(v) && v > 0 ? Math.round(v * 100) : 0;
+}
+function opcoesCategoria(lado, sel) {
+  const tiposOk = lado === "saida" ? ["DESPESA", "ATIVO", "PASSIVO"] : ["RECEITA", "ATIVO", "PASSIVO", "PL"];
+  const grupos = {};
+  Object.entries(CAT).forEach(([nome, cod]) => {
+    const t = C[cod].tipo;
+    if (!tiposOk.includes(t) && cod !== A_CLASSIFICAR) return;
+    (grupos[C[cod].pai] = grupos[C[cod].pai] || []).push([nome, cod]);
+  });
+  return `<option value="">Escolha o tipo</option>` + Object.keys(grupos).sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }))
+    .map(g => `<optgroup label="${esc(C[g]?.nome || g)}">${grupos[g].sort((a, b) => a[1].localeCompare(b[1], "pt-BR", { numeric: true })).map(([n]) => `<option value="${esc(n)}" ${n === sel ? "selected" : ""}>${esc(n)}</option>`).join("")}</optgroup>`).join("");
+}
+function montarFormulario() {
+  const catAtual = $("n-cat").value, ccAtual = $("n-cc").value;
+  $("n-cat").innerHTML = opcoesCategoria(F.tipo, catAtual);
+  $("n-cc").innerHTML = `<option value="">Escolha o negócio</option>` + Object.entries(CC).map(([k, v]) => `<option value="${esc(v)}" ${v === ccAtual ? "selected" : ""}>${esc(v)}</option>`).join("");
+  $("n-negs").innerHTML = Object.entries(CC).map(([k, v]) => `<button type="button" data-cc="${esc(v)}" aria-pressed="false">${ccMarca(k)}<span>${esc(v).replace(/\//g, "/<wbr>")}</span></button>`).join("");
+  pintarNegocios();
+  const vAtual = $("n-veic").value;
+  $("n-veic").innerHTML = `<option value="">Nenhum</option>` + Object.keys(VEIC).map(n => `<option value="${esc(n)}" ${n === vAtual ? "selected" : ""}>${esc(n)}</option>`).join("");
+  if (!$("n-data").value) $("n-data").value = INFO.hoje || new Date().toLocaleDateString("sv-SE");
+  const porConta = Object.keys(CONTAS).length > 0;
+  $("n-conta-box").hidden = !porConta;
+  let contaAtual = $("n-conta").value; if (!contaAtual) try { contaAtual = localStorage.getItem("lr-conta") || ""; } catch (e) {}
+  $("n-conta").innerHTML = `<option value="">Escolha o banco ou dinheiro</option>` + Object.values(CONTAS).map(n => `<option value="${esc(n)}" ${n === contaAtual ? "selected" : ""}>${esc(n)}</option>`).join("");
+  atualizarPrevia();
+}
+function setTipo(t) {
+  F.tipo = t;
+  $("n-tipo").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.t === t));
+  $("n-cat").innerHTML = opcoesCategoria(t, $("n-cat").value);
+  F.tocou = !!$("n-cat").value && F.tocou;
+  aplicarSugestao(); atualizarPrevia();
+}
+$("n-tipo").addEventListener("click", e => { const b = e.target.closest("[data-t]"); if (b) setTipo(b.dataset.t); });
+function partidasAtuais() {
+  const v = parseValor($("n-valor").value), conta = CAT[$("n-cat").value], cc = CC_POR_NOME[$("n-cc").value] || null;
+  const porConta = Object.keys(CONTAS).length > 0;
+  const cx = porConta ? (CONTA_POR_NOME[$("n-conta").value] || SEM_CONTA) : CAIXA;
+  const r = porConta && conta !== RONEI && cx !== RONEI ? Math.round(v * (Number($("n-parte").value) || 0)) : 0;
+  const cat = [{ conta, cc, v: v - r }, { conta: RONEI, cc: null, v: r }].filter(x => x.v || x.conta === conta);
+  return F.tipo === "saida"
+    ? [...cat.map(x => ({ conta: x.conta, cc: x.cc, d: x.v, c: 0 })), { conta: cx, cc: null, d: 0, c: v }]
+    : [{ conta: cx, cc: null, d: v, c: 0 }, ...cat.map(x => ({ conta: x.conta, cc: x.cc, d: 0, c: x.v }))];
+}
+function validar() {
+  if (!parseValor($("n-valor").value)) return "Informe o valor.";
+  if (!$("n-data").value) return "Informe a data.";
+  if (!$("n-hist").value.trim()) return "Escreva o que foi.";
+  if (Object.keys(CONTAS).length && !$("n-conta").value) return "Escolha por onde o dinheiro passou.";
+  if (!$("n-cc").value && CAT[$("n-cat").value] !== "2.3.01") return "Escolha de qual negócio é.";
+  if (!$("n-cat").value) return F.tipo === "saida" ? "Escolha o tipo de gasto." : "Escolha o tipo de entrada.";
+  if (!$("n-parte-box").hidden && $("n-parte").value === "") return "Diga se é meio a meio com o Ronei.";
+  return null;
+}
+function pintarNegocios() {
+  const v = $("n-cc").value;
+  document.querySelectorAll("#n-negs button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.cc === v)));
+}
+$("n-negs").addEventListener("click", e => {
+  const b = e.target.closest("button[data-cc]"); if (!b) return;
+  $("n-cc").value = $("n-cc").value === b.dataset.cc ? "" : b.dataset.cc;   // tocar de novo desmarca
+  $("n-cc").dispatchEvent(new Event("change"));
+  pintarNegocios();
+});
+function atualizarPrevia() {
+  if (!Object.keys(C).length) return;
+  pintarNegocios();
+  ajustarCampos();
+  const ps = partidasAtuais();
+  $("n-preview").innerHTML = razonetes(ps);
+  const v = ps.reduce((s, x) => s + x.d, 0);
+  $("n-check").innerHTML = v ? `<span class="chip ok">D ${NUM.format(v / 100)} = C ${NUM.format(v / 100)}</span>` : "";
+  const erro = validar();
+  $("n-salvar").disabled = !!erro || F.salvando;
+  const algo = $("n-valor").value || $("n-hist").value;
+  if (!F.salvando && $("n-status").dataset.kind !== "ok") mostrarStatus(erro && algo ? erro : "", "err");
+}
+function mostrarStatus(txt, kind) { const s = $("n-status"); s.textContent = txt; s.className = "status " + (kind || ""); s.dataset.kind = kind || ""; }
+function aplicarSugestao() {
+  const box = $("n-sug");
+  const s = sugerir($("n-hist").value, F.tipo);
+  if (!s || !CAT[s.cat]) { box.hidden = true; return; }
+  if (!F.tocou && $("n-cat").querySelector(`option[value="${CSS.escape(s.cat)}"]`)) { $("n-cat").value = s.cat; if (s.cc) $("n-cc").value = s.cc; }
+  if (s.pt && !F.tocouParte && $("n-cc").value === s.cc) $("n-parte").value = s.pt;
+  const igual = $("n-cat").value === s.cat && (!s.cc || $("n-cc").value === s.cc);
+  box.innerHTML = `<span>Pelo que já foi lançado, costuma ser <b>${esc(s.cat)}</b>${s.cc && CC_POR_NOME[s.cc] ? ` · ${ccDot(CC_POR_NOME[s.cc])} ${esc(s.cc)}` : ""}${s.pt === "0.5" ? " · meio a meio com o Ronei" : ""}</span>${igual ? `<span class="chip ok">preenchido</span>` : `<button type="button" class="link" id="n-usar">Usar sugestão</button>`}`;
+  box.hidden = false;
+  const u = $("n-usar"); if (u) u.onclick = () => { $("n-cat").value = s.cat; if (s.cc) $("n-cc").value = s.cc; F.tocou = false; F.tocouParte = false; aplicarSugestao(); atualizarPrevia(); };
+}
+function sugerirVeiculo() {
+  if (F.tocouVeic) return;
+  const v = acharVeiculo($("n-hist").value);
+  $("n-veic").value = VEIC[v] ? v : "";
+  veiculoMudou();
+}
+function veiculoMudou() {
+  const v = VEIC[$("n-veic").value];
+  if (v && v.ccNome && CC_POR_NOME[v.ccNome] && !$("n-cc").value) $("n-cc").value = v.ccNome;
+}
+$("n-hist").addEventListener("input", () => { mostrarStatus("", ""); aplicarSugestao(); sugerirVeiculo(); atualizarPrevia(); });
+$("n-veic").addEventListener("change", () => { F.tocouVeic = true; veiculoMudou(); aplicarSugestao(); atualizarPrevia(); });
+$("n-valor").addEventListener("input", () => { mostrarStatus("", ""); atualizarPrevia(); });
+$("n-cat").addEventListener("change", () => { F.tocou = true; aplicarSugestao(); atualizarPrevia(); });
+$("n-cc").addEventListener("change", () => { F.tocou = true; aplicarSugestao(); atualizarPrevia(); });
+$("n-data").addEventListener("input", atualizarPrevia);
+$("n-conta").addEventListener("change", atualizarPrevia);
+$("n-parte").addEventListener("change", () => { F.tocouParte = true; atualizarPrevia(); });
+
+$("n-form").addEventListener("submit", e => {
+  e.preventDefault();
+  const erro = validar(); if (erro) { mostrarStatus(erro, "err"); return; }
+  F.salvando = true; atualizarPrevia(); mostrarStatus("Gravando na planilha…", "");
+  const dado = {
+    data: $("n-data").value, historico: $("n-hist").value.trim(), tipo: F.tipo, valor: parseValor($("n-valor").value),
+    categoria: $("n-cat").value, centro: $("n-cc").value, contraparte: $("n-cp").value.trim(), observacao: $("n-obs").value.trim(),
+    veiculo: $("n-veic").value, conta: $("n-conta").value, parteRonei: Number($("n-parte").value) || 0,
+  };
+  chamar("lancar", dado).then(r => {
+    F.salvando = false;
+    mostrarStatus(`Lançado na linha ${r.linha} da planilha: ${dado.historico}, ${fmt(dado.valor)}.`, "ok");
+    try { if (dado.conta) localStorage.setItem("lr-conta", dado.conta); } catch (e) {}
+    ["n-valor", "n-hist", "n-cp", "n-obs", "n-veic", "n-parte"].forEach(id => $(id).value = "");
+    F.tocou = false; F.tocouVeic = false; F.tocouParte = false; $("n-sug").hidden = true; $("n-mais").open = false; $("n-hist").focus();
+    carregar("lancou");
+  }).catch(err => {
+    F.salvando = false;
+    if (err.codigo === "chave_invalida" || err.codigo === "sem_chave") { pedirAcesso(err.message); return; }
+    mostrarStatus(err && err.message ? err.message : "Não foi possível gravar. Tente de novo.", "err"); atualizarPrevia();
+  });
+});
+
+function vLancar() {
+  const ult = LL.slice().sort((a, b) => b.linha - a.linha).slice(0, 15);
+  $("n-lista").innerHTML = ult.map(l => {
+    const link = linkLinha(l.linha);
+    return `<div class="entry" data-l="${l.id}">
+      <div class="d">${fdata(l.data)}<br>linha ${l.linha}</div>
+      <div class="h">${l.p.find(p => p.cc) ? ccDot(l.p.find(p => p.cc).cc) : ""}<span>${esc(l.hist)}</span>${l.pend ? `<span class="chip warn">${esc(S.modo === "simples" ? pendSimples(l.pend).join(" ") : l.pend)}</span>` : ""}</div>
+      <div class="amt ${l.ent ? "pos" : "neg"}">${fmt(l.valor)}</div>
+      <div class="legs"><div>${esc(l.cat || "sem categoria")} · ${esc(l.grp || "sem centro")}${l.veic ? " · " + esc(l.veic) : ""}${l.contaNome ? " · " + esc(l.contaNome) : ""}${l.parte ? ` · Ronei ${Math.round(l.parte * 100)}%` : ""}</div>${link ? `<div><a class="lnk" href="${esc(link)}">Abrir na planilha</a></div>` : ""}</div>
+    </div>`;
+  }).join("") || `<div class="empty">A planilha ainda não tem lançamentos. O primeiro que você fizer aparece aqui.</div>`;
+  $("n-lista").querySelectorAll(".entry").forEach(en => en.onclick = ev => { if (ev.target.closest("a")) return; detalhe(en.dataset.l); });
+  atualizarPrevia();
+}
+
+// ================= MEUS LANÇAMENTOS (modo simples) =================
+function mesesComDados() { return [...new Set(LL.map(l => l.mes))].filter(Boolean).sort().reverse(); }
+const nomeMes = m => m ? MESES[+m.slice(5, 7) - 1] + "/" + m.slice(0, 4) : "";
+function mesPadrao() { const ms = mesesComDados(), h = (INFO.hoje || "").slice(0, 7); return ms.includes(h) ? h : (ms.find(m => m <= h) || ms[0] || ""); }
+function vMeus() {
+  const el = $("v-meus");
+  const meses = mesesComDados();
+  if (S.mesM === null || (S.mesM && !meses.includes(S.mesM))) S.mesM = mesPadrao();
+  const pend = LL.filter(l => l.pend).sort((a, b) => b.data.localeCompare(a.data) || b.linha - a.linha);
+  const pendVis = S.verPend ? pend : pend.slice(0, 6);
+  const q = semAcento(S.buscaM);
+  let lista = LL.filter(l => !S.mesM || l.mes === S.mesM);
+  if (q) lista = LL.filter(l => semAcento([l.hist, l.cp, l.cat, l.grp, l.veic, l.contaNome, l.obs].join(" ")).includes(q) || String(l.linha) === q.trim());
+  lista = lista.slice().sort((a, b) => b.data.localeCompare(a.data) || b.linha - a.linha);
+  // transferência entre as contas do Deivid (saque, depósito de cheque, PIX de um banco para outro) não é entrada nem saída de verdade
+  const conta_ = l => !/transferencias a conciliar/.test(semAcento(l.cat));
+  const ent = lista.filter(l => l.ent && conta_(l)).reduce((s, l) => s + l.valor, 0), sai = lista.filter(l => !l.ent && conta_(l)).reduce((s, l) => s + l.valor, 0);
+  const vis = lista.slice(0, S.limM);
+  const itemAt = l => {
+    const link = linkLinha(l.linha);
+    return `<div class="item-at">
+      <div class="d">${fdata(l.data)}<br>linha ${l.linha}</div>
+      <div class="h">${esc(l.hist)}</div>
+      <div class="amt ${l.ent ? "pos" : "neg"}">${l.ent ? "+" : "−"} ${fmt(l.valor)}</div>
+      <ul>${pendSimples(l.pend).map(t => `<li>${esc(t)}</li>`).join("")}</ul>
+      <div class="acao">${link ? `<a class="lnk" href="${esc(link)}" target="_blank" rel="noopener">Corrigir na planilha (linha ${l.linha})</a>` : `Corrigir na planilha, linha ${l.linha}`}</div>
+    </div>`;
+  };
+  el.innerHTML = `
+    ${pend.length ? `<div class="panel atencao">
+      <h2>Precisa da sua atenção · ${pend.length}</h2>
+      <div>${pendVis.map(itemAt).join("")}</div>
+      ${pend.length > 6 ? `<div style="margin-top:10px"><button class="btn" id="ver-pend">${S.verPend ? "Mostrar só os 6 mais recentes" : "Mostrar todos os " + pend.length}</button></div>` : ""}
+      <p class="note">Para corrigir, abra a linha na planilha e ajuste lá. Depois clique em Atualizar, lá em cima.</p>
+    </div>` : `<div class="panel"><span class="chip ok">Tudo certo</span> Nenhum lançamento com pendência.</div>`}
+    <div class="panel">
+      <div class="row-ctrl" style="margin-bottom:12px">
+        <label for="m-busca" class="sr">Procurar</label>
+        <input type="search" id="m-busca" placeholder="Procurar: descrição, nome, tipo, veículo ou nº da linha" value="${esc(S.buscaM)}" style="flex:1 1 260px">
+        <label for="m-mes" class="sr">Mês</label>
+        <select id="m-mes" ${q ? "disabled" : ""}><option value="">Todos os meses</option>${meses.map(m => `<option value="${m}" ${m === S.mesM ? "selected" : ""}>${nomeMes(m)}</option>`).join("")}</select>
+      </div>
+      <h2>${q ? "Resultado da procura em todos os meses" : S.mesM ? nomeMes(S.mesM) : "Todos os meses"} · ${lista.length.toLocaleString("pt-BR")} lançamentos</h2>
+      <div class="resumo-lista"><span>Entrou <b class="pos">${fmt(ent)}</b></span><span>Saiu <b class="neg">${fmt(sai)}</b></span><span>sem contar as transferências entre as suas contas</span></div>
+      <div>${vis.map(l => `<div class="entry" data-l="${l.id}" tabindex="0">
+        <div class="d">${fdata(l.data)}</div>
+        <div class="h">${ccDe(l) ? ccDot(ccDe(l)) : ""}<span>${esc(l.hist)}</span>${l.pend ? `<span class="chip warn">confira</span>` : ""}</div>
+        <div class="amt ${l.ent ? "pos" : "neg"}">${l.ent ? "+" : "−"} ${fmt(l.valor)}</div>
+        <div class="info">${[esc(nomeNegocio(l)), esc(l.cat || "sem tipo"), l.contaNome ? esc(l.contaNome) : "", l.veic ? esc(l.veic) : "", l.parte ? "meio a meio com o Ronei" : ""].filter(Boolean).join(" · ")}</div>
+      </div>`).join("") || `<div class="empty">Nada encontrado.</div>`}</div>
+      ${lista.length > vis.length ? `<div style="margin-top:12px"><button class="btn" id="m-mais">Mostrar mais ${Math.min(100, lista.length - vis.length)}</button></div>` : ""}
+    </div>`;
+  const b = $("m-busca");
+  b.oninput = () => { S.buscaM = b.value; S.limM = 100; const pos = b.selectionStart; vMeus(); const nb = $("m-busca"); nb.focus(); nb.setSelectionRange(pos, pos); };
+  $("m-mes").onchange = e => { S.mesM = e.target.value; S.limM = 100; vMeus(); };
+  const vp = $("ver-pend"); if (vp) vp.onclick = () => { S.verPend = !S.verPend; vMeus(); };
+  const mm = $("m-mais"); if (mm) mm.onclick = () => { S.limM += 100; vMeus(); };
+  el.querySelectorAll(".entry").forEach(e => e.onclick = () => detalhe(e.dataset.l));
+}
+
+// ================= RESUMO DO MÊS (modo simples) =================
+// Só receitas e gastos (contas de resultado), na parte do Deivid: transferências, financiamentos e compra ou venda de bens ficam de fora.
+function vMes() {
+  const el = $("v-mes");
+  const meses = mesesComDados();
+  if (!S.mesR || !meses.includes(S.mesR)) S.mesR = mesPadrao();
+  const porNeg = {}, porTipo = {};
+  let rec = 0, desp = 0;
+  LL.forEach(l => {
+    if (l.mes !== S.mesR) return;
+    l.p.forEach(p => {
+      const t = C[p.conta].tipo; if (t !== "RECEITA" && t !== "DESPESA") return;
+      const k = p.cc || "CC99"; porNeg[k] = porNeg[k] || { r: 0, d: 0 };
+      if (t === "RECEITA") { porNeg[k].r += p.c - p.d; rec += p.c - p.d; }
+      else { porNeg[k].d += p.d - p.c; desp += p.d - p.c; porTipo[p.conta] = (porTipo[p.conta] || 0) + p.d - p.c; }
+    });
+  });
+  const sobra = rec - desp;
+  const negs = Object.entries(porNeg).sort((a, b) => (b[1].r + b[1].d) - (a[1].r + a[1].d));
+  const tipos = Object.entries(porTipo).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  const maxT = Math.max(1, ...tipos.map(([, v]) => v));
+  // saldo do último extrato de cada banco (o saldo da planilha só bate com o banco depois da conciliação)
+  const bancos = Object.values(CONTAS).map(nome => {
+    const e = EXTRATOS.filter(x => x.conta === nome).sort((a, b) => String(b.data).localeCompare(String(a.data)))[0];
+    return e ? { nome, saldo: e.saldo, data: String(e.data) } : null;
+  }).filter(Boolean);
+  let ronei = 0; LL.forEach(l => l.p.forEach(p => { if (p.conta === RONEI) ronei += p.d - p.c; }));
+  const nPend = LL.filter(l => l.pend).length;
+  el.innerHTML = `
+    <div class="panel">
+      <div class="row-ctrl" style="justify-content:space-between;margin-bottom:12px">
+        <h2 style="margin:0">Resumo de ${nomeMes(S.mesR)}</h2>
+        <label for="r-mes" class="sr">Mês</label>
+        <select id="r-mes">${meses.map(m => `<option value="${m}" ${m === S.mesR ? "selected" : ""}>${nomeMes(m)}</option>`).join("")}</select>
+      </div>
+      <div class="tres">
+        <div class="kpi"><div class="l">Entrou</div><div class="n pos">${fmt(rec)}</div><div class="h">fretes, comissões, vendas e outras receitas</div></div>
+        <div class="kpi"><div class="l">Saiu</div><div class="n neg">${fmt(desp)}</div><div class="h">gastos de todos os negócios</div></div>
+        <div class="kpi"><div class="l">${sobra >= 0 ? "Sobrou" : "Faltou"}</div><div class="n ${sobra >= 0 ? "pos" : "neg"}">${fmt(Math.abs(sobra))}</div><div class="h">entrou menos saiu</div></div>
+      </div>
+      ${nPend ? `<div class="alerts" style="margin-top:12px"><span class="chip warn">${nPend} lançamentos precisam da sua atenção</span><button class="link" id="r-pend">Ver quais</button></div>` : ""}
+    </div>
+    <div class="panel">
+      <h2>Por negócio</h2>
+      <div class="neg-row hd"><span>Negócio</span><span class="v">Entrou</span><span class="v">Saiu</span><span class="v">Sobrou</span></div>
+      ${negs.map(([k, v]) => `<div class="neg-row"><span class="nome">${ccMarca(k)}<span>${esc(CC[k] || "Sem negócio")}</span></span>
+        <span class="v ent pos" data-l="Entrou">${fmt(v.r)}</span><span class="v sai neg" data-l="Saiu">${fmt(v.d)}</span><span class="v sob ${v.r - v.d >= 0 ? "pos" : "neg"}" data-l="${v.r - v.d >= 0 ? "Sobrou" : "Faltou"}">${fmt(v.r - v.d)}</span></div>`).join("") || `<div class="empty">Nenhuma entrada ou gasto neste mês.</div>`}
+    </div>
+    <div class="panel">
+      <h2>Para onde foi o dinheiro</h2>
+      ${tipos.map(([k, v]) => `<div class="gasto"><span>${esc(C[k].nome)}</span><span class="v">${fmt(v)}</span><div class="vbar" style="width:${v / maxT * 100}%"></div></div>`).join("") || `<div class="empty">Nenhum gasto neste mês.</div>`}
+    </div>
+    ${bancos.length || ronei ? `<div class="panel">
+      <h2>Bancos e sociedade</h2>
+      <div class="bancos">
+        ${bancos.map(b => `<div class="kpi"><div class="l">${esc(b.nome)}</div><div class="n">${fmt(b.saldo)}</div><div class="h">saldo no extrato de ${fdata(b.data)}</div></div>`).join("")}
+        ${ronei ? `<div class="kpi"><div class="l">Conta com o Ronei</div><div class="n">${fmt(Math.abs(ronei))}</div><div class="h">${ronei >= 0 ? "a receber do Ronei" : "a pagar ao Ronei"} · ainda em conferência</div></div>` : ""}
+      </div>
+    </div>` : ""}
+    <p class="note">Aqui entram só as entradas e os gastos. Transferências entre contas, financiamentos e compra ou venda de veículos ficam de fora. Quando um gasto é meio a meio com o Ronei, conta só a parte do Deivid.</p>`;
+  $("r-mes").onchange = e => { S.mesR = e.target.value; vMes(); };
+  const rp = $("r-pend"); if (rp) rp.onclick = () => abrir("meus");
+}
+
+// ================= navegação =================
+function render() {
+  if (!Object.keys(C).length) return;
+  ({ resumo: vResumo, lancar: vLancar, meus: vMeus, mes: vMes, contas: vContas, veiculos: vVeiculos, balancete: vBalancete, razao: vRazao, diario: vDiario, plano: vPlano })[S.view]();
+}
+// abre no modo simples, a não ser que este aparelho tenha escolhido o modo contador
+try { S.modo = localStorage.getItem("lr-modo") === "contador" ? "contador" : "simples"; S.view = localStorage.getItem("lr-view") || ""; } catch (e) {}
+aplicarModo();
+carregar();
+</script>
+<script>
+// Aplicativo: o service worker guarda só os arquivos do painel para abrir rápido e sem internet.
+// Os dados vêm sempre da API (nunca do cache). Versão nova do painel é baixada sozinha.
+if ("serviceWorker" in navigator && location.protocol !== "file:") {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(e => console.warn("Service worker não registrado:", e));
+  });
+}
+</script>
+</body>
+</html>
