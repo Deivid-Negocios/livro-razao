@@ -1,7 +1,7 @@
 // Service worker do Livro Razão. Gerado pelo App_Livro_Razao_montar.py: não editar à mão.
 // Guarda só os arquivos do próprio aplicativo. Chamadas para a API do Apps Script (script.google.com)
 // e qualquer outro endereço passam direto, sem cache.
-const VERSAO = "lr-app-483f19de7e";
+const VERSAO = "lr-app-6136687b64";
 const ARQUIVOS = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png", "icon-maskable-512.png"];
 
 self.addEventListener("install", e => {

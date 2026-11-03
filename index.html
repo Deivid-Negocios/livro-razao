@@ -666,8 +666,8 @@ function tpAReceber() {
   abertas.forEach(c => { (grupos[c.cliente] = grupos[c.cliente] || []).push(c); });
   return { abertas, grupos };
 }
-function tpKmAtual(cam) {
-  let km = 0;
+function tpKmAtual(cam) {   // o maior km conhecido: cadastro (Km informado), cargas e abastecimentos
+  let km = ((TD.caminhoes || []).find(c => c.nome === cam) || {}).kmInfo || 0;
   (TD.cargas || []).forEach(c => { if (c.caminhao === cam) km = Math.max(km, c.kmChegada || 0, c.kmSaida || 0); });
   (TD.abastecimentos || []).forEach(a => { if (a.caminhao === cam) km = Math.max(km, a.km || 0); });
   return km;
