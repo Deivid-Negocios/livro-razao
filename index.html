@@ -315,6 +315,22 @@ nav.tabs .curto { display: none; }
 .negs button span:last-child { font-weight: 600; font-size: 13px; line-height: 1.2; overflow-wrap: break-word; min-width: 0; }
 .negs button[aria-pressed=true] { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
 @media (max-width: 400px) { .negs { grid-template-columns: 1fr 1fr; } }
+/* ---------- colar do Claude (versão 8): vários lançamentos de uma vez ---------- */
+.colar { margin-bottom: 18px; }
+.colar .cab { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; }
+.colar .cab .note { margin-top: 4px; }
+.colar textarea { width: 100%; margin: 14px 0 10px; font-family: var(--f-num); font-size: 13px; resize: vertical; }
+.citem { border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-top: 10px; }
+.citem.fora { opacity: .6; }
+.citem .topo { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 10px; align-items: start; }
+.citem .topo input { width: 20px; height: 20px; margin: 2px 0 0; padding: 0; accent-color: var(--accent); }
+.citem .h { font-weight: 600; overflow-wrap: anywhere; }
+.citem .d { font-family: var(--f-num); font-size: 12px; color: var(--muted); }
+.citem .amt { font-family: var(--f-num); white-space: nowrap; text-align: right; }
+.citem .fields { margin-top: 10px; gap: 8px 12px; }
+.citem .avisos { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+.citem .avisos .chip { white-space: normal; }
+.colar .actions { margin-top: 14px; }
 /* abertura: os logos entram um a um enquanto a planilha é lida */
 .abertura { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 8px; }
 .abertura img { width: 60px; height: 60px; border-radius: 14px; box-shadow: 0 0 0 1px var(--line), 0 6px 16px rgb(0 0 0 / .12); background: #fff; }
@@ -326,6 +342,64 @@ nav.tabs .curto { display: none; }
   @keyframes toque { 50% { transform: scale(1.12); } }
 }
 .bancos { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+<!-- TRANSP:CSS -->
+/* ---------- Transportadora (TR Simões) ---------- */
+.tp-top { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; justify-content: space-between; }
+.tp-marca { display: flex; gap: 12px; align-items: center; }
+.tp-marca img { width: 44px; height: 44px; border-radius: 10px; background: #fff; object-fit: contain; }
+.tp-marca b { font-size: 17px; display: block; }
+.tp-sub { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.tp-sub button { font: inherit; font-weight: 600; font-size: 13px; white-space: nowrap; border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 18px; padding: 7px 13px; cursor: pointer; }
+.tp-sub button[aria-pressed=true] { background: var(--cover); border-color: var(--cover); color: var(--cover-fg); }
+.tp-sub .badge { font-family: var(--f-num); font-size: 11px; background: var(--warn-soft); color: var(--warn); border-radius: 10px; padding: 0 6px; margin-left: 4px; }
+.tp-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) { .tp-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tp-alert { display: flex; gap: 10px; padding: 10px 12px; border-radius: 8px; background: var(--warn-soft); color: var(--warn); font-size: 13px; }
+.tp-alert + .tp-alert { margin-top: 8px; }
+.tp-alert b { color: var(--fg); }
+.tp-alert.info { background: var(--surface-2); color: var(--muted); }
+.tp-trucks { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+.tp-truck { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; display: grid; gap: 10px; align-content: start; }
+.tp-truck-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.tp-truck-h b { font-size: 16px; }
+.tp-plate { font-family: var(--f-num); font-size: 11px; border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; color: var(--muted); }
+.tp-big { font-family: var(--f-num); font-size: 23px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.tp-split { height: 10px; border-radius: 5px; overflow: hidden; display: flex; background: var(--surface-2); }
+.tp-split i { display: block; height: 100%; }
+.tp-mini { display: grid; grid-template-columns: 1fr auto; gap: 3px 12px; font-size: 12px; }
+.tp-mini span { color: var(--muted); }
+.tp-mini b { font-family: var(--f-num); font-weight: 500; text-align: right; }
+.tp-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); margin-top: 10px; }
+.tp-legend i { display: inline-block; width: 12px; height: 8px; border-radius: 2px; margin-right: 5px; }
+.tp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.tp-chip { font: inherit; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 10px; padding: 8px 12px; cursor: pointer; text-align: left; }
+.tp-chip small { display: block; color: var(--muted); font-size: 11px; font-family: var(--f-num); }
+.tp-chip[aria-pressed=true] { border-color: var(--accent); background: var(--accent-soft); }
+.tp-calc { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; background: var(--surface-2); border-radius: 8px; padding: 12px; }
+.tp-calc div { font-size: 12px; color: var(--muted); }
+.tp-calc b { display: block; font-family: var(--f-num); font-size: 16px; color: var(--fg); font-weight: 500; }
+.tp-form { display: grid; gap: 14px; max-width: 680px; }
+.tp-item { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; }
+.tp-item + .tp-item { margin-top: 10px; }
+.tp-item-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.tp-item-h b { font-size: 15px; }
+.tp-age { height: 8px; border-radius: 4px; display: flex; overflow: hidden; margin-top: 10px; background: var(--surface-2); }
+.tp-age i { display: block; height: 100%; }
+pre.tp-wa { white-space: pre-wrap; font-family: var(--f-ui); font-size: 13px; background: var(--cre-soft); color: var(--fg); padding: 12px; border-radius: 8px; margin: 10px 0 0; }
+.tp-verdict { padding: 14px; border-radius: 8px; font-size: 14px; margin-top: 10px; }
+.tp-verdict.ok { background: var(--cre-soft); } .tp-verdict.bad { background: var(--deb-soft); } .tp-verdict.mid { background: var(--warn-soft); }
+.tp-verdict b { font-family: var(--f-num); font-size: 20px; display: block; }
+.tp-box { background: var(--surface-2); border-radius: 8px; padding: 12px; margin-top: 10px; display: grid; gap: 10px; }
+.tp-check { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; font-size: 13px; }
+.tp-check input[type=text] { width: 120px; text-align: right; }
+.tp-rat { font-size: 11px; color: var(--muted); }
+#v-transp td.mut, #v-transp .mut { color: var(--muted); }
+.tp-box select, .tp-box .f { width: 100%; min-width: 0; }
+.tp-check > span { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 420px) { .tp-check input[type=text] { width: 92px; } }
+#v-transp, #tp-corpo { grid-template-columns: minmax(0, 1fr); min-width: 0; }
+#v-transp > *, #tp-corpo > * { min-width: 0; }
+<!-- /TRANSP:CSS -->
 
 /* ---------- aplicativo instalado (PWA) ---------- */
 /* Tela cheia no iPhone: a capa verde passa por baixo da barra de status e do entalhe; o conteúdo fica fora deles */
@@ -367,6 +441,7 @@ main.wrap { padding-bottom: calc(56px + env(safe-area-inset-bottom)); }
       <button role="tab" data-v="diario" data-m="c" aria-selected="false">Diário<span class="badge" id="b-pend"></span></button>
       <button role="tab" data-v="contas" data-m="c" id="tab-contas" aria-selected="false" hidden>Contas</button>
       <button role="tab" data-v="veiculos" data-m="c" aria-selected="false">Veículos</button>
+      <button role="tab" data-v="transp" data-m="sc" aria-selected="false"><span class="longo">Transportadora</span><span class="curto">Transp.</span></button>
       <button role="tab" data-v="razao" data-m="c" aria-selected="false">Razão</button>
       <button role="tab" data-v="balancete" data-m="c" aria-selected="false">Balancete</button>
       <button role="tab" data-v="plano" data-m="c" aria-selected="false">Plano de contas</button>
@@ -394,6 +469,26 @@ main.wrap { padding-bottom: calc(56px + env(safe-area-inset-bottom)); }
   <section class="view" id="v-resumo" hidden></section>
 
   <section class="view" id="v-lancar" hidden>
+    <div class="panel colar" id="c-box">
+      <div class="cab">
+        <div><h2 style="margin:0">Colar do Claude</h2><p class="note">Mandou o extrato ou o comprovante para o Claude? Copie a resposta dele e cole aqui para lançar tudo de uma vez.</p></div>
+        <button type="button" class="btn" id="c-abrir" aria-expanded="false" aria-controls="c-corpo">Colar lançamentos</button>
+      </div>
+      <div id="c-corpo" hidden>
+        <textarea id="c-texto" rows="5" placeholder="Cole aqui a resposta do Claude" aria-label="Resposta do Claude"></textarea>
+        <div class="actions">
+          <button type="button" class="btn" id="c-colar" hidden>Colar</button>
+          <button type="button" class="primary" id="c-ler">Conferir</button>
+          <button type="button" class="link" id="c-limpar">Limpar</button>
+          <span class="status" id="c-status" role="status" aria-live="polite"></span>
+        </div>
+        <div id="c-lista"></div>
+        <div class="actions" id="c-acoes" hidden>
+          <button type="button" class="primary" id="c-gravar">Gravar</button>
+          <span class="status" id="c-gstatus" role="status" aria-live="polite"></span>
+        </div>
+      </div>
+    </div>
     <div class="lanc">
       <form class="panel voucher" id="n-form" novalidate>
         <div class="row-ctrl" style="justify-content:space-between">
@@ -447,6 +542,7 @@ main.wrap { padding-bottom: calc(56px + env(safe-area-inset-bottom)); }
   <section class="view" id="v-diario" hidden></section>
   <section class="view" id="v-contas" hidden></section>
   <section class="view" id="v-veiculos" hidden></section>
+  <section class="view" id="v-transp" hidden></section>
   <section class="view" id="v-razao" hidden></section>
   <section class="view" id="v-balancete" hidden></section>
   <section class="view" id="v-plano" hidden></section>
@@ -454,6 +550,578 @@ main.wrap { padding-bottom: calc(56px + env(safe-area-inset-bottom)); }
 
 <div class="overlay" id="ov" hidden></div>
 
+<!-- TRANSP:JS -->
+<script>
+// ================= TRANSPORTADORA (TR Simões) =================
+// Lê as abas "TR ..." pela ação "transp" da API (Transportadora.gs) e as despesas do centro Transp. Simões da aba Lançamentos.
+// O dinheiro continua só no Livro Razão: despesa e diesel pago pelo Deivid gravam com "lancar"; carga, abastecimento,
+// recebimento e acerto gravam nas abas TR com "salvarTransp".
+let TD = null, TD_ERRO = "";
+const T = { sub: "resumo", mes: "", cam: "", camAb: "", camDesp: "", camSim: "", filtroDesp: "Todos", baixa: "", msg: "", msgTipo: "" };
+const TP_CC = "Transp. Simões";
+const TP_GRUPOS = { diesel: ["Diesel", "var(--deb)"], com: ["Comissão e salários", "#c0791b"], ped: ["Pedágio", "#737a82"],
+  man: ["Manutenção e pneus", "#8a6a47"], fix: ["Seguro e impostos", "#3b6db3"], out: ["Outras", "#93529f"] };
+const tpGrupo = c => c === "Combustível" ? "diesel" : /comiss|salari/.test(semAcento(c)) ? "com" : c === "Pedágios" ? "ped"
+  : /manuten/.test(semAcento(c)) ? "man" : /seguro|imposto/.test(semAcento(c)) ? "fix" : "out";
+const tpR = v => BRL.format(v || 0);
+const tpR0 = v => (v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+const tpN0 = v => (v || 0).toLocaleString("pt-BR", { maximumFractionDigits: 0 });
+const tpN2 = v => (v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const tpPct = v => isFinite(v) ? (v * 100).toLocaleString("pt-BR", { maximumFractionDigits: 0 }) + "%" : "—";
+function tpNum(s) {   // "37.800" -> 37800; "2.550,28" -> 2550.28; "68,9" -> 68.9
+  s = String(s ?? "").trim().replace(/[R$\s]/g, "");
+  if (!s) return 0;
+  if (s.includes(",")) s = s.replace(/\./g, "").replace(",", ".");
+  else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, "");
+  const n = Number(s); return isFinite(n) ? n : 0;
+}
+const tpHoje = () => INFO.hoje || new Date().toISOString().slice(0, 10);
+const tpLinkAba = k => TD && TD.abas && TD.abas[k] != null && INFO.planilhaUrl ? `${INFO.planilhaUrl}#gid=${TD.abas[k]}` : "";
+function tpMsg(txt, tipo) { T.msg = txt; T.msgTipo = tipo || ""; const el = $("tp-msg"); if (el) { el.textContent = txt; el.className = "status " + (tipo || ""); } }
+
+function recarregarTransp() {
+  return chamar("transp").then(d => { TD = d; TD_ERRO = ""; }, e => { TD_ERRO = e.message; });
+}
+
+// ---------- modelo: o mês escolhido ----------
+const tpNoMes = (data, mes) => !!data && (mes === "ano" ? data.slice(0, 4) === tpHoje().slice(0, 4) : data.slice(0, 7) === mes);
+function tpModelo(mes) {
+  const cams = (TD.caminhoes || []).filter(c => c.nome && semAcento(c.ativo) !== "nao");
+  const nomes = cams.map(c => c.nome);
+  const cavalos = cams.filter(c => semAcento(c.tipo) !== "carreta").map(c => c.nome);
+  const motoristas = (TD.motoristas || []).filter(m => m.nome);
+  const cargas = (TD.cargas || []).filter(c => tpNoMes(c.data, mes));
+  const abast = (TD.abastecimentos || []).filter(a => tpNoMes(a.data, mes));
+  // base do rateio, calculada no mês de cada despesa: diesel anotado nos abastecimentos; sem isso, o frete das cargas;
+  // sem isso, partes iguais. Só vale quando metade dos cavalos ou mais tem dado no mês (um abastecimento só não decide o rateio).
+  const igual = {}; cavalos.forEach(c => igual[c] = 1 / (cavalos.length || 1));
+  const bases = {};
+  const baseDoMes = m => {
+    if (bases[m]) return bases[m];
+    const porAb = {}, porFr = {};
+    (TD.abastecimentos || []).forEach(a => { if (a.data && a.data.slice(0, 7) === m && cavalos.includes(a.caminhao)) porAb[a.caminhao] = (porAb[a.caminhao] || 0) + (a.valor || 0); });
+    (TD.cargas || []).forEach(c => { if (c.data && c.data.slice(0, 7) === m && cavalos.includes(c.caminhao)) porFr[c.caminhao] = (porFr[c.caminhao] || 0) + (c.frete || 0); });
+    const usa = (o, nome) => { const t = Object.values(o).reduce((a, b) => a + b, 0); if (t <= 0 || Object.keys(o).length * 2 < cavalos.length) return null;
+      const b = {}; cavalos.forEach(c => b[c] = (o[c] || 0) / t); return { b, nome }; };
+    return (bases[m] = usa(porAb, "diesel dos abastecimentos") || usa(porFr, "frete das cargas") || { b: igual, nome: "partes iguais" });
+  };
+  const doMotorista = txt => {
+    const h = semAcento(txt);
+    const m = motoristas.find(m => new RegExp("(^|[^a-z])" + semAcento(m.nome) + "($|[^a-z])").test(h));
+    const c = m && cams.find(c => c.motorista === m.nome);
+    return c ? c.nome : "";
+  };
+  const despesas = [];
+  LL.forEach(l => {
+    if (l.grp !== TP_CC || l.ent || !l.valor || !tpNoMes(l.data, mes)) return;
+    const cod = CAT[l.cat]; if (!cod || !C[cod] || C[cod].tipo !== "DESPESA") return;
+    const v = l.valor / 100, g = tpGrupo(l.cat);
+    let partes = null, como = "";
+    if (l.veic && nomes.includes(l.veic)) { partes = { [l.veic]: v }; como = "coluna Veículo"; }
+    else if (l.veic === "FH 400" && nomes.includes("FH 400 2009") && nomes.includes("FH 400 I-Shift")) {
+      const v2 = acharVeiculo(l.hist), vm = doMotorista(l.hist + " " + (l.cp || ""));
+      const qual = [v2, vm].find(x => x === "FH 400 2009" || x === "FH 400 I-Shift");
+      partes = qual ? { [qual]: v } : { "FH 400 2009": v / 2, "FH 400 I-Shift": v / 2 }; como = qual ? "FH 400 pelo histórico" : "FH 400 sem dizer qual: metade em cada";
+    } else {
+      const v2 = acharVeiculo(l.hist);
+      if (v2 && nomes.includes(v2)) { partes = { [v2]: v }; como = "histórico"; }
+      else { const vm = doMotorista(l.hist + " " + (l.cp || "")); if (vm) { partes = { [vm]: v }; como = "motorista"; } }
+    }
+    let rateio = false;
+    if (!partes) {
+      if (g === "diesel" || g === "ped") { const b = baseDoMes(l.data.slice(0, 7)); partes = {}; cavalos.forEach(c => partes[c] = v * b.b[c]); como = "rateio: " + b.nome; rateio = true; }
+      else if (g === "fix") { partes = {}; cavalos.forEach(c => partes[c] = v * igual[c]); como = "rateio igual entre os cavalos"; rateio = true; }
+      else { partes = { Geral: v }; como = "geral da transportadora"; }
+    }
+    despesas.push({ l, linha: l.linha, data: l.data, hist: l.hist, cat: l.cat, g, v, partes, como, rateio, semCam: !l.veic });
+  });
+  // diesel que não passou pelo caixa do Deivid (pago pelo cliente em diesel ou pelo motorista)
+  abast.forEach(a => {
+    if (semAcento(a.pagoPor) === "deivid" || !a.valor) return;
+    despesas.push({ l: null, linha: null, data: a.data, hist: `Diesel ${a.posto || ""} (pago por ${a.pagoPor})`, cat: "Combustível", g: "diesel", v: a.valor,
+      partes: { [a.caminhao]: a.valor }, como: "abastecimento", rateio: false, semCam: false });
+  });
+  const por = {}; [...nomes, "Geral"].forEach(n => { por[n] = { total: 0, diesel: 0, com: 0, ped: 0, man: 0, fix: 0, out: 0, rateado: 0 }; });
+  despesas.forEach(d => Object.entries(d.partes).forEach(([n, v]) => {
+    if (!por[n]) por[n] = { total: 0, diesel: 0, com: 0, ped: 0, man: 0, fix: 0, out: 0, rateado: 0 };
+    por[n].total += v; por[n][d.g] += v; if (d.rateio) por[n].rateado += v;
+  }));
+  const op = {}; nomes.forEach(n => op[n] = { cargas: 0, ton: 0, frete: 0, km: 0, litros: 0 });
+  cargas.forEach(c => { const o = op[c.caminhao]; if (!o) return; o.cargas++; o.ton += (c.peso || 0) / 1000; o.frete += c.frete || 0;
+    if (c.kmChegada > c.kmSaida) o.km += c.kmChegada - c.kmSaida; });
+  abast.forEach(a => { if (op[a.caminhao]) op[a.caminhao].litros += a.litros || 0; });
+  const recebidoLR = LL.filter(l => l.grp === TP_CC && l.ent && tpNoMes(l.data, mes) && CAT[l.cat] && C[CAT[l.cat]].tipo === "RECEITA")
+    .reduce((a, l) => a + l.valor / 100, 0);
+  const baseNome = [...new Set(despesas.filter(d => d.rateio && d.g !== "fix").map(d => d.como.replace("rateio: ", "")))].join(", ") || "partes iguais";
+  return { cams, nomes, cavalos, motoristas, cargas, abast, despesas, por, op, recebidoLR, baseNome };
+}
+
+// ---------- a receber, km, consumo, acerto (independem do mês) ----------
+function tpAReceber() {
+  const rec = {}; (TD.recebimentos || []).forEach(r => { rec[r.carga] = (rec[r.carga] || 0) + (r.valor || 0); });
+  const cli = {}; (TD.clientes || []).forEach(c => { cli[c.nome] = c; });
+  const abertas = (TD.cargas || []).map(c => ({ ...c, recebido: rec[c.id] || 0, falta: Math.round(((c.frete || 0) - (rec[c.id] || 0)) * 100) / 100 }))
+    .filter(c => c.falta > 0.009).map(c => ({ ...c, dias: diasEntre(c.data, tpHoje()), prazo: Number((cli[c.cliente] || {}).prazo) || 0 }));
+  const grupos = {};
+  abertas.forEach(c => { (grupos[c.cliente] = grupos[c.cliente] || []).push(c); });
+  return { abertas, grupos };
+}
+function tpKmAtual(cam) {
+  let km = 0;
+  (TD.cargas || []).forEach(c => { if (c.caminhao === cam) km = Math.max(km, c.kmChegada || 0, c.kmSaida || 0); });
+  (TD.abastecimentos || []).forEach(a => { if (a.caminhao === cam) km = Math.max(km, a.km || 0); });
+  return km;
+}
+function tpKml(cam) {   // km/l entre o primeiro e o último tanque cheio com km anotado
+  const ab = (TD.abastecimentos || []).filter(a => a.caminhao === cam && a.km > 0).sort((a, b) => a.km - b.km);
+  const cheios = ab.filter(a => semAcento(a.cheio) !== "nao");
+  if (cheios.length < 2) return 0;
+  const ini = cheios[0], fim = cheios[cheios.length - 1];
+  const litros = ab.filter(a => a.km > ini.km && a.km <= fim.km).reduce((s, a) => s + (a.litros || 0), 0);
+  return litros ? (fim.km - ini.km) / litros : 0;
+}
+const TP_SINAL = { "Desconto": -1, "Ajuste contra o motorista": -1, "Despesa paga pelo motorista": 1, "Diária": 1, "Ajuste a favor do motorista": 1 };
+function tpAcerto(m) {
+  const desde = m.desde || ((TD.cargas || []).filter(c => c.motorista === m.nome).map(c => c.data).sort()[0]) || "";
+  const itens = [];
+  if (m.saldoIni) itens.push({ data: desde, txt: "Saldo inicial", v: m.saldoIni });
+  (TD.cargas || []).forEach(c => { if (c.motorista === m.nome && c.comissao && (!desde || c.data >= desde)) itens.push({ data: c.data, txt: `Comissão ${c.id}${c.origem || c.destino ? ` (${c.origem || "?"} → ${c.destino || "?"})` : ""}`, v: c.comissao }); });
+  const rx = new RegExp("(^|[^a-z])" + semAcento(m.nome) + "($|[^a-z])");
+  if (desde) LL.forEach(l => {
+    if (l.grp === TP_CC && !l.ent && l.data >= desde && /comiss|salari/.test(semAcento(l.cat)) && rx.test(semAcento(l.hist + " " + (l.cp || ""))))
+      itens.push({ data: l.data, txt: `Pago: ${l.hist} (linha ${l.linha})`, v: -l.valor / 100 });
+  });
+  (TD.acertos || []).forEach(a => { if (a.motorista === m.nome) itens.push({ data: a.data, txt: `${a.tipo}${a.obs ? ": " + a.obs : ""}`, v: (TP_SINAL[a.tipo] || 0) * (a.valor || 0) }); });
+  itens.sort((a, b) => (a.data || "").localeCompare(b.data || ""));
+  return { desde, itens, saldo: Math.round(itens.reduce((s, x) => s + x.v, 0) * 100) / 100 };
+}
+function tpVencimentos() {
+  const r = [];
+  (TD.vencimentos || []).forEach(v => { if (v.vence) r.push({ quem: v.quem, doc: v.doc, vence: v.vence }); });
+  (TD.motoristas || []).forEach(m => { if (m.cnh) r.push({ quem: m.nome, doc: "CNH", vence: m.cnh }); if (m.toxico) r.push({ quem: m.nome, doc: "Exame toxicológico", vence: m.toxico }); });
+  (TD.caminhoes || []).forEach(c => {
+    if (c.kmOleo && c.kmUltTroca) { const falta = c.kmUltTroca + c.kmOleo - tpKmAtual(c.nome); r.push({ quem: c.nome, doc: "Troca de óleo", km: falta }); }
+  });
+  return r.map(x => ({ ...x, dias: x.vence ? diasEntre(tpHoje(), x.vence) : null }))
+    .sort((a, b) => (a.dias ?? a.km / 100) - (b.dias ?? b.km / 100));
+}
+
+// ---------- tela ----------
+const TP_SUBS = [["resumo", "Resumo"], ["carga", "+ Carga"], ["abastecer", "+ Abastecer"], ["despesas", "Despesas"], ["receber", "A receber"],
+  ["motoristas", "Motoristas"], ["caminhoes", "Caminhões"], ["simular", "Vale o frete?"]];
+function vTransp() {
+  const el = $("v-transp");
+  if (!TD) {
+    el.innerHTML = `<div class="panel"><h2>Transportadora</h2><div class="tp-alert">⚠ <div><b>A área da transportadora não respondeu.</b><br>${esc(TD_ERRO || "Ainda lendo…")}<br><br>
+      Se aparecer "Ação desconhecida", falta colar o Codigo.gs versão 5 e o Transportadora.gs no Apps Script e criar uma nova versão da implantação.</div></div></div>`;
+    return;
+  }
+  if (!TD.instalado) {
+    el.innerHTML = `<div class="panel"><h2>Transportadora</h2><div class="tp-alert">⚠ <div><b>As abas da transportadora ainda não existem na planilha.</b><br>
+      Na planilha, use o menu <b>Livro Razão &gt; Transportadora: instalar abas</b> e depois toque em Atualizar.</div></div></div>`;
+    return;
+  }
+  if (!T.mes) T.mes = tpHoje().slice(0, 7);
+  const meses = [...new Set([...(TD.cargas || []).map(c => c.data), ...LL.filter(l => l.grp === TP_CC).map(l => l.data)].filter(Boolean).map(d => d.slice(0, 7)))].sort().reverse();
+  if (!meses.includes(T.mes) && T.mes !== "ano") meses.unshift(T.mes);
+  const rec = tpAReceber(), venc = tpVencimentos().filter(v => (v.dias != null && v.dias <= 30) || (v.km != null && v.km <= 2000));
+  const badge = { receber: rec.abertas.filter(c => c.prazo && c.dias > c.prazo).length, caminhoes: venc.length };
+  el.innerHTML = `
+    <div class="tp-top">
+      <div class="tp-marca"><img src="${LOGOS.trsimoes}" alt=""><div><b>Transportadora</b><span class="mut" style="font-size:12px">TR Simões</span></div></div>
+      <select id="tp-mes" aria-label="Mês">${[["ano", "Ano de " + tpHoje().slice(0, 4)], ...meses.map(m => [m, MESES[Number(m.slice(5, 7)) - 1] + "/" + m.slice(0, 4)])]
+        .map(([v, t]) => `<option value="${v}" ${v === T.mes ? "selected" : ""}>${t}</option>`).join("")}</select>
+    </div>
+    <nav class="tp-sub" aria-label="Transportadora">${TP_SUBS.map(([k, t]) => `<button type="button" data-s="${k}" aria-pressed="${k === T.sub}">${t}${badge[k] ? `<span class="badge">${badge[k]}</span>` : ""}</button>`).join("")}</nav>
+    <div id="tp-corpo" style="display:grid;gap:16px"></div>`;
+  $("tp-mes").onchange = () => { T.mes = $("tp-mes").value; vTransp(); };
+  el.querySelectorAll(".tp-sub button").forEach(b => b.onclick = () => { T.sub = b.dataset.s; T.msg = ""; vTransp(); });
+  const ativo = el.querySelector(`.tp-sub button[aria-pressed=true]`); if (ativo) ativo.parentElement.scrollLeft = ativo.offsetLeft - 40;
+  ({ resumo: tpResumo, carga: tpCarga, abastecer: tpAbastecer, despesas: tpDespesas, receber: tpReceber, motoristas: tpMotoristas,
+     caminhoes: tpCaminhoes, simular: tpSimular })[T.sub](rec, venc);
+}
+const tpCorpo = h => { $("tp-corpo").innerHTML = h; };
+const tpStatus = () => `<span class="status ${T.msgTipo}" id="tp-msg" role="status" aria-live="polite">${esc(T.msg)}</span>`;
+function tpChipsCam(id, sel, extra, soCavalos) {
+  const cams = (TD.caminhoes || []).filter(c => c.nome && semAcento(c.ativo) !== "nao" && !(soCavalos && semAcento(c.tipo) === "carreta"));
+  const lista = [...cams.map(c => [c.nome, c.placa || c.tipo || ""]), ...(extra || [])];
+  return `<div class="tp-chips" id="${id}">${lista.map(([n, p]) => `<button type="button" class="tp-chip" data-n="${esc(n)}" aria-pressed="${n === sel}">${esc(n)}<small>${esc(p)}</small></button>`).join("")}</div>`;
+}
+function tpLigarChips(id, cb) {
+  document.querySelectorAll(`#${id} .tp-chip`).forEach(b => b.onclick = () => {
+    document.querySelectorAll(`#${id} .tp-chip`).forEach(x => x.setAttribute("aria-pressed", x === b)); cb(b.dataset.n);
+  });
+}
+
+// ---------- Resumo ----------
+function tpResumo(rec, venc) {
+  const M = tpModelo(T.mes);
+  const frete = M.cargas.reduce((a, c) => a + (c.frete || 0), 0), ton = M.cargas.reduce((a, c) => a + (c.peso || 0), 0) / 1000;
+  const despLR = M.despesas.filter(d => d.l).reduce((a, d) => a + d.v, 0), despTot = M.despesas.reduce((a, d) => a + d.v, 0);
+  const aRec = rec.abertas.reduce((a, c) => a + c.falta, 0);
+  const sobra = M.recebidoLR - despLR;
+  const alertas = [];
+  const semCam = M.despesas.filter(d => d.l && d.rateio);
+  if (semCam.length) alertas.push(`🧾 <div><b>${semCam.length} despesas sem caminhão</b> (${tpR0(semCam.reduce((a, d) => a + d.v, 0))}) foram rateadas (diesel e pedágio por ${esc(M.baseNome)}; seguro e imposto em partes iguais). <a href="#" data-ir="despesas">Ver as despesas</a></div>`);
+  const vencidas = rec.abertas.filter(c => c.prazo && c.dias > c.prazo);
+  if (vencidas.length) alertas.push(`⏱ <div><b>${vencidas.length} cargas passaram do prazo de pagamento</b> (${tpR0(vencidas.reduce((a, c) => a + c.falta, 0))}). <a href="#" data-ir="receber">Ver A receber</a></div>`);
+  venc.forEach(v => alertas.push(`🛢 <div><b>${esc(v.quem)}</b>: ${esc(v.doc)} ${v.dias != null ? (v.dias < 0 ? `venceu há ${-v.dias} dias` : `vence em ${v.dias} dias`) : `faltam ${tpN0(v.km)} km`}.</div>`));
+  const semPlaca = (TD.caminhoes || []).filter(c => c.nome && !c.placa).length;
+  if (semPlaca) alertas.push(`ℹ <div><b>${semPlaca} caminhões sem placa</b> no cadastro. ${tpLinkAba("caminhoes") ? `<a href="${tpLinkAba("caminhoes")}" target="_blank" rel="noopener">Completar na planilha</a>` : ""}</div>`);
+  if (!M.cargas.length) alertas.push(`ℹ <div>Nenhuma carga lançada neste período. O frete de cada caminhão aparece quando as cargas forem lançadas em <a href="#" data-ir="carga">+ Carga</a>.</div>`);
+  const cartao = n => {
+    const p = M.por[n] || { total: 0 }, o = M.op[n] || { cargas: 0, km: 0, frete: 0, litros: 0 }, cam = M.cams.find(c => c.nome === n) || {};
+    const s = o.frete - p.total, base = Math.max(o.frete, p.total) || 1, w = v => Math.max(0, v / base * 100).toFixed(1) + "%";
+    const kml = tpKml(n);
+    return `<div class="tp-truck"><div class="tp-truck-h"><b>${esc(n)}</b><span class="tp-plate">${esc(cam.placa || "sem placa")}</span></div>
+      <div><div class="mut" style="font-size:12px">Frete ${tpR0(o.frete)} · despesas ${tpR0(p.total)}</div><div class="tp-big ${s >= 0 ? "pos" : "neg"}">${tpR0(s)}</div>
+      ${p.rateado ? `<div class="tp-rat">${tpR0(p.rateado)} das despesas vêm de rateio</div>` : ""}</div>
+      <div class="tp-split">${Object.keys(TP_GRUPOS).map(k => `<i style="width:${w(p[k] || 0)};background:${TP_GRUPOS[k][1]}"></i>`).join("")}<i style="width:${w(s)};background:var(--cre)"></i></div>
+      <div class="tp-mini"><span>Cargas</span><b>${o.cargas}</b><span>Km rodado (cargas)</span><b>${tpN0(o.km)}</b>
+        <span>Frete por km</span><b>${o.km ? tpR(o.frete / o.km) : "—"}</b><span>Custo por km</span><b>${o.km ? tpR(p.total / o.km) : "—"}</b>
+        <span>Km/l</span><b>${kml ? tpN2(kml) : "—"}</b><span>Motorista</span><b style="font-family:var(--f-ui)">${esc(cam.motorista || "—")}</b></div></div>`;
+  };
+  const outros = Object.keys(M.por).filter(n => !M.cavalos.includes(n) && n !== "Geral" && M.por[n].total > 0);
+  tpCorpo(`
+    <div class="tp-kpis">
+      <div class="kpi"><div class="l">Frete das cargas</div><div class="n">${tpR0(frete)}</div><div class="h">${M.cargas.length} cargas · ${tpN0(ton)} t</div></div>
+      <div class="kpi"><div class="l">Recebido (Livro Razão)</div><div class="n">${tpR0(M.recebidoLR)}</div><div class="h">fretes que entraram no caixa</div></div>
+      <div class="kpi"><div class="l">Despesas</div><div class="n">${tpR0(despTot)}</div><div class="h">${tpR0(despLR)} pelo caixa${despTot > despLR ? ` + ${tpR0(despTot - despLR)} de diesel pago pelo cliente` : ""}</div></div>
+      <div class="kpi"><div class="l">Sobrou no caixa</div><div class="n ${sobra >= 0 ? "pos" : "neg"}">${tpR0(sobra)}</div><div class="h">recebido − despesas · a receber ${tpR0(aRec)}</div></div>
+    </div>
+    ${alertas.length ? `<div class="panel"><h2>Precisa da sua atenção</h2>${alertas.map(a => `<div class="tp-alert">${a}</div>`).join("")}</div>` : ""}
+    <div><h2>Cada caminhão no período</h2><div class="tp-trucks">${M.cavalos.map(cartao).join("")}${outros.map(cartao).join("")}
+      <div class="tp-truck"><div class="tp-truck-h"><b>Geral da transportadora</b></div><div><div class="mut" style="font-size:12px">Despesas sem caminhão que não são diesel, pedágio, seguro ou imposto</div>
+      <div class="tp-big neg">${tpR0((M.por.Geral || {}).total)}</div></div></div></div>
+      <div class="tp-legend">${Object.values(TP_GRUPOS).map(([l, c]) => `<span><i style="background:${c}"></i>${l}</span>`).join("")}<span><i style="background:var(--cre)"></i>Sobrou</span></div></div>
+    <div class="panel"><h2>Últimas cargas</h2>${tpTabelaCargas((TD.cargas || []).slice(-8).reverse(), rec)}</div>`);
+  document.querySelectorAll("#tp-corpo [data-ir]").forEach(a => a.onclick = e => { e.preventDefault(); T.sub = a.dataset.ir; vTransp(); });
+}
+function tpTabelaCargas(lista, rec) {
+  if (!lista.length) return `<p class="note" style="margin:0">Nenhuma carga lançada ainda.</p>`;
+  const falta = {}; rec.abertas.forEach(c => falta[c.id] = c.falta);
+  return `<div class="tbl-wrap"><table><thead><tr><th>Data</th><th>Caminhão</th><th>Rota</th><th class="v">Frete</th></tr></thead><tbody>${lista.map(c => {
+    const f = falta[c.id], st = !f ? ["ok", "Recebido"] : f < c.frete - 0.009 ? ["warn", "Recebido parcial"] : ["plain", "A receber"];
+    return `<tr><td>${fdata(c.data)}<div class="mut" style="font-size:12px">${esc(c.id)}</div></td><td>${esc(c.caminhao)}<div class="mut" style="font-size:12px">${esc(c.motorista || "")}</div></td>
+      <td>${esc(c.origem || "")} → ${esc(c.destino || "")}<div class="mut" style="font-size:12px">${esc(c.cliente)} · ${tpN0(c.peso)} kg</div></td>
+      <td class="v">${tpR(c.frete)}<div><span class="chip ${st[0]}">${st[1]}</span></div></td></tr>`; }).join("")}</tbody></table></div>`;
+}
+
+// ---------- + Carga ----------
+function tpCarga() {
+  const cams = (TD.caminhoes || []).filter(c => c.nome && semAcento(c.ativo) !== "nao");
+  if (!T.cam || !cams.find(c => c.nome === T.cam)) T.cam = (cams.find(c => semAcento(c.tipo) !== "carreta") || cams[0] || {}).nome || "";
+  const rotas = [], vistos = new Set();
+  (TD.cargas || []).slice().reverse().forEach(c => { const k = [c.origem, c.destino, c.produto, c.cliente].join("|"); if (!vistos.has(k) && rotas.length < 8) { vistos.add(k); rotas.push(c); } });
+  tpCorpo(`<div class="panel"><h2>Nova carga</h2><form class="tp-form" id="tp-fc" novalidate>
+    <div class="f"><label>Caminhão</label>${tpChipsCam("tp-cc", T.cam)}</div>
+    <div class="fields">
+      <div class="f"><label for="tc-mot">Motorista</label><select id="tc-mot"><option value="">—</option>${(TD.motoristas || []).filter(m => m.nome).map(m => `<option>${esc(m.nome)}</option>`).join("")}</select></div>
+      <div class="f"><label for="tc-data">Data</label><input type="date" id="tc-data" value="${tpHoje()}"></div>
+      ${rotas.length ? `<div class="f full"><label>Rotas recentes</label><div class="tp-chips" id="tc-rotas">${rotas.map((r, i) => `<button type="button" class="tp-chip" data-i="${i}">${esc(r.origem)} → ${esc(r.destino)}<small>${esc(r.produto || "")} · R$ ${tpN2(r.rt)}/t · ${esc(r.cliente)}</small></button>`).join("")}</div></div>` : ""}
+      <div class="f"><label for="tc-cli">Cliente (quem paga)</label><select id="tc-cli"><option value="">Escolha</option>${(TD.clientes || []).filter(c => c.nome).map(c => `<option>${esc(c.nome)}</option>`).join("")}</select></div>
+      <div class="f"><label for="tc-prod">Produto</label><input id="tc-prod" placeholder="Milho, calcário, DDG..."></div>
+      <div class="f"><label for="tc-ori">Origem</label><input id="tc-ori"></div>
+      <div class="f"><label for="tc-des">Destino</label><input id="tc-des"></div>
+      <div class="f"><label for="tc-peso">Peso do ticket (kg)</label><input id="tc-peso" inputmode="numeric" placeholder="37000"></div>
+      <div class="f"><label for="tc-rt">R$ por tonelada</label><input id="tc-rt" inputmode="decimal" placeholder="80,00"></div>
+      <div class="f"><label for="tc-ped">Pedágio / balsa (R$)</label><input id="tc-ped" inputmode="decimal" placeholder="0"></div>
+      <div class="f"><label for="tc-pct">% de comissão</label><input id="tc-pct" inputmode="decimal"></div>
+      <div class="f"><label for="tc-ks">Km na saída</label><input id="tc-ks" inputmode="numeric"></div>
+      <div class="f"><label for="tc-kc">Km na chegada</label><input id="tc-kc" inputmode="numeric"></div>
+      <div class="f"><label for="tc-tk">Nº do ticket ou CT-e</label><input id="tc-tk" placeholder="opcional"></div>
+      <div class="f"><label for="tc-obs">Observação</label><input id="tc-obs" placeholder="opcional"></div>
+    </div>
+    <div class="tp-calc"><div>Frete<b id="tc-frete">—</b></div><div>Comissão<b id="tc-com">—</b></div><div>Km rodado<b id="tc-km">—</b></div></div>
+    <div class="actions"><button type="submit" class="primary" id="tc-salvar">Gravar carga</button>${tpStatus()}</div>
+    <p class="note" style="margin:0">A carga vira "a receber" do cliente e a comissão entra no acerto do motorista. O dinheiro não é lançado aqui: quando o cliente pagar, o recebimento entra no Livro Razão e a baixa é feita em A receber.</p>
+  </form></div><div class="panel"><h2>Últimas cargas</h2>${tpTabelaCargas((TD.cargas || []).slice(-8).reverse(), tpAReceber())}</div>`);
+  const pegarCam = n => {
+    T.cam = n; const c = cams.find(x => x.nome === n) || {};
+    if (c.motorista) $("tc-mot").value = c.motorista;
+    const km = tpKmAtual(n); if (km) $("tc-ks").placeholder = "último: " + tpN0(km);
+    pegarMot();
+  };
+  const pegarMot = () => { const m = (TD.motoristas || []).find(x => x.nome === $("tc-mot").value); $("tc-pct").value = m && m.pct ? tpN2(m.pct * 100).replace(",00", "") : ""; calc(); };
+  const calc = () => {
+    const fr = tpNum($("tc-peso").value) / 1000 * tpNum($("tc-rt").value), p = tpNum($("tc-pct").value) / 100;
+    $("tc-frete").textContent = fr ? tpR(fr) : "—"; $("tc-com").textContent = fr && p ? tpR(fr * p) : "—";
+    const km = tpNum($("tc-kc").value) - tpNum($("tc-ks").value); $("tc-km").textContent = km > 0 ? tpN0(km) + " km" : "—";
+  };
+  tpLigarChips("tp-cc", pegarCam); pegarCam(T.cam);
+  $("tc-mot").onchange = pegarMot;
+  ["tc-peso", "tc-rt", "tc-pct", "tc-ks", "tc-kc"].forEach(id => $(id).addEventListener("input", calc));
+  if ($("tc-rotas")) tpLigarChips("tc-rotas", () => {});
+  document.querySelectorAll("#tc-rotas .tp-chip").forEach(b => b.addEventListener("click", () => {
+    const r = rotas[b.dataset.i]; $("tc-ori").value = r.origem || ""; $("tc-des").value = r.destino || ""; $("tc-prod").value = r.produto || "";
+    $("tc-rt").value = tpN2(r.rt); $("tc-cli").value = r.cliente || ""; calc();
+  }));
+  $("tp-fc").onsubmit = e => {
+    e.preventDefault();
+    const d = { tipo: "carga", data: $("tc-data").value, caminhao: T.cam, motorista: $("tc-mot").value, cliente: $("tc-cli").value, produto: $("tc-prod").value.trim(),
+      origem: $("tc-ori").value.trim(), destino: $("tc-des").value.trim(), peso: tpNum($("tc-peso").value), rt: tpNum($("tc-rt").value),
+      pedagio: tpNum($("tc-ped").value), pct: tpNum($("tc-pct").value) / 100, kmSaida: tpNum($("tc-ks").value), kmChegada: tpNum($("tc-kc").value),
+      ticket: $("tc-tk").value.trim(), obs: $("tc-obs").value.trim() };
+    const falta = [!d.caminhao && "o caminhão", !d.cliente && "o cliente", !d.peso && "o peso", !d.rt && "o R$ por tonelada"].filter(Boolean);
+    if (falta.length) { tpMsg("Falta " + falta.join(", ") + ".", "err"); return; }
+    $("tc-salvar").disabled = true; tpMsg("Gravando…");
+    chamar("salvarTransp", d).then(r => recarregarTransp().then(() => { T.msg = `Carga ${r.id} gravada: frete ${tpR(r.frete)}.`; T.msgTipo = "ok"; vTransp(); }))
+      .catch(e => { $("tc-salvar").disabled = false; tpMsg("Não gravou: " + e.message, "err"); });
+  };
+}
+
+// ---------- + Abastecer ----------
+function tpAbastecer() {
+  const cams = (TD.caminhoes || []).filter(c => c.nome && semAcento(c.ativo) !== "nao" && semAcento(c.tipo) !== "carreta");
+  if (!T.camAb || !cams.find(c => c.nome === T.camAb)) T.camAb = (cams[0] || {}).nome || "";
+  const contas = Object.values(CONTAS);
+  tpCorpo(`<div class="panel"><h2>Abastecimento</h2><form class="tp-form" id="tp-fa" novalidate>
+    <div class="f"><label>Caminhão</label>${tpChipsCam("tp-ca", T.camAb, null, true)}</div>
+    <div class="fields">
+      <div class="f"><label for="ta-l">Litros</label><input id="ta-l" inputmode="decimal" placeholder="420"></div>
+      <div class="f"><label for="ta-v">Valor (R$)</label><input id="ta-v" inputmode="decimal" placeholder="2.604,00"></div>
+      <div class="f"><label for="ta-k">Km no painel</label><input id="ta-k" inputmode="numeric"><span class="note" id="ta-kult" style="margin:0"></span></div>
+      <div class="f"><label for="ta-p">Posto</label><input id="ta-p" placeholder="Shalon"></div>
+      <div class="f"><label for="ta-d">Data</label><input type="date" id="ta-d" value="${tpHoje()}"></div>
+      <div class="f"><label for="ta-ch">Tanque cheio?</label><select id="ta-ch"><option>Sim</option><option>Não</option></select></div>
+      <div class="f"><label for="ta-q">Quem pagou</label><select id="ta-q"><option>Deivid</option><option>Cliente em diesel</option><option>Motorista</option></select></div>
+      <div class="f" id="ta-cbox"><label for="ta-c">Por onde pagou</label><select id="ta-c"><option value="">Escolha</option>${contas.map(c => `<option>${esc(c)}</option>`).join("")}</select></div>
+    </div>
+    <div class="tp-calc"><div>R$ por litro<b id="ta-rl">—</b></div><div>Km/l do caminhão<b id="ta-kml">—</b></div><div>Km desde o último<b id="ta-kd">—</b></div></div>
+    <div class="actions"><button type="submit" class="primary" id="ta-salvar">Gravar abastecimento</button>${tpStatus()}</div>
+    <p class="note" style="margin:0">Se quem pagou foi o Deivid, o mesmo toque grava o diesel no Livro Razão (Combustível · Transp. Simões, com o caminhão). Não precisa lançar de novo. Pago pelo cliente em diesel não passa pelo caixa: entra só aqui e conta como despesa do caminhão.</p>
+  </form></div>`);
+  const calc = () => {
+    const l = tpNum($("ta-l").value), v = tpNum($("ta-v").value), k = tpNum($("ta-k").value), ult = tpKmAtual(T.camAb);
+    $("ta-rl").textContent = l && v ? "R$ " + (v / l).toLocaleString("pt-BR", { minimumFractionDigits: 3, maximumFractionDigits: 3 }) : "—";
+    $("ta-kd").textContent = k && ult && k > ult ? tpN0(k - ult) + " km" : "—";
+    $("ta-cbox").hidden = $("ta-q").value !== "Deivid";
+  };
+  const pegar = n => { T.camAb = n; const ult = tpKmAtual(n), kml = tpKml(n); $("ta-kult").textContent = ult ? "Último km anotado: " + tpN0(ult) : ""; $("ta-kml").textContent = kml ? tpN2(kml) : "—"; calc(); };
+  tpLigarChips("tp-ca", pegar); pegar(T.camAb);
+  ["ta-l", "ta-v", "ta-k"].forEach(id => $(id).addEventListener("input", calc)); $("ta-q").onchange = calc;
+  $("tp-fa").onsubmit = e => {
+    e.preventDefault();
+    const d = { tipo: "abastecimento", data: $("ta-d").value, caminhao: T.camAb, posto: $("ta-p").value.trim(), litros: tpNum($("ta-l").value), valor: tpNum($("ta-v").value),
+      km: tpNum($("ta-k").value), cheio: $("ta-ch").value, pagoPor: $("ta-q").value };
+    const conta = $("ta-c").value;
+    const falta = [!d.caminhao && "o caminhão", !d.litros && "os litros", !d.valor && "o valor", d.pagoPor === "Deivid" && contas.length && !conta && "por onde pagou"].filter(Boolean);
+    if (falta.length) { tpMsg("Falta " + falta.join(", ") + ".", "err"); return; }
+    $("ta-salvar").disabled = true; tpMsg("Gravando…");
+    const noLivro = d.pagoPor === "Deivid"
+      ? chamar("lancar", { data: d.data, historico: `Diesel ${d.posto || ""} ${d.caminhao}`.replace(/\s+/g, " ").trim(), tipo: "saida", valor: Math.round(d.valor * 100),
+          categoria: "Combustível", centro: TP_CC, contraparte: d.posto, observacao: `Abastecimento: ${tpN2(d.litros)} l${d.km ? ", km " + tpN0(d.km) : ""}`,
+          veiculo: VEIC[d.caminhao] ? d.caminhao : "", conta }).then(r => r.linha)
+      : Promise.resolve("");
+    noLivro.then(linha => chamar("salvarTransp", { ...d, linhaLR: linha }).then(r => ({ r, linha }), e => {
+      throw new Error(linha ? `o diesel entrou no Livro Razão (linha ${linha}), mas o abastecimento não foi gravado: ${e.message}. Não grave de novo: anote os litros e o km direto na aba TR Abastecimentos.` : e.message);
+    })).then(({ r, linha }) => {
+      T.msg = `Abastecimento ${r.id} gravado${linha ? ` e diesel lançado no Livro Razão (linha ${linha})` : ""}.`; T.msgTipo = "ok";
+      carregar();
+    }).catch(e => { $("ta-salvar").disabled = false; tpMsg("Não gravou: " + e.message, "err"); });
+  };
+}
+
+// ---------- Despesas ----------
+function tpDespesas() {
+  const M = tpModelo(T.mes);
+  const cols = [...M.nomes.filter(n => (M.por[n] || {}).total > 0 || M.cavalos.includes(n)), "Geral"];
+  if (T.filtroDesp !== "Todos" && !cols.includes(T.filtroDesp)) T.filtroDesp = "Todos";
+  const tot = M.despesas.reduce((a, d) => a + d.v, 0);
+  const val = d => T.filtroDesp === "Todos" ? d.v : (d.partes[T.filtroDesp] || 0);
+  const sel = M.despesas.filter(d => val(d) > 0.004);
+  const porCat = {}; sel.forEach(d => { porCat[d.cat] = (porCat[d.cat] || 0) + val(d); });
+  const totSel = Object.values(porCat).reduce((a, b) => a + b, 0);
+  const cats = Object.keys(CAT).filter(c => C[CAT[c]] && C[CAT[c]].tipo === "DESPESA").sort((a, b) => a.localeCompare(b, "pt-BR"));
+  const contas = Object.values(CONTAS);
+  if (!T.camDesp) T.camDesp = M.cavalos[0] || "Geral";
+  tpCorpo(`
+    <div class="tp-kpis">
+      <div class="kpi"><div class="l">Despesas do período</div><div class="n">${tpR0(tot)}</div><div class="h">transportadora inteira</div></div>
+      <div class="kpi"><div class="l">Diesel</div><div class="n">${tpR0(M.despesas.filter(d => d.g === "diesel").reduce((a, d) => a + d.v, 0))}</div></div>
+      <div class="kpi"><div class="l">Manutenção e pneus</div><div class="n">${tpR0(M.despesas.filter(d => d.g === "man").reduce((a, d) => a + d.v, 0))}</div></div>
+      <div class="kpi"><div class="l">Sem caminhão (rateado)</div><div class="n" style="color:var(--warn)">${M.despesas.filter(d => d.rateio).length}</div><div class="h">${tpR0(M.despesas.filter(d => d.rateio).reduce((a, d) => a + d.v, 0))}</div></div>
+    </div>
+    <div class="panel"><h2>Despesas do período</h2>
+      <div class="tp-chips" id="tp-fd" style="margin-bottom:12px">${["Todos", ...cols].map(n => `<button type="button" class="tp-chip" data-n="${esc(n)}" aria-pressed="${n === T.filtroDesp}">${n === "Todos" ? "Transportadora toda" : esc(n)}<small>${tpR0(n === "Todos" ? tot : (M.por[n] || {}).total)}</small></button>`).join("")}</div>
+      <div class="tbl-wrap"><table><thead><tr><th>Tipo de despesa</th><th class="v">Valor</th><th class="v">%</th></tr></thead><tbody>
+      ${Object.entries(porCat).sort((a, b) => b[1] - a[1]).map(([c, v]) => `<tr><td><i style="display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;background:${TP_GRUPOS[tpGrupo(c)][1]}"></i>${esc(c)}</td><td class="v">${tpR(v)}</td><td class="v mut">${tpPct(v / totSel)}</td></tr>`).join("") || `<tr><td colspan="3" class="mut">Nenhuma despesa neste período.</td></tr>`}
+      </tbody><tfoot><tr><td><b>Total</b></td><td class="v"><b>${tpR(totSel)}</b></td><td></td></tr></tfoot></table></div>
+      <p class="note">Vem do Livro Razão: tudo o que está no centro Transp. Simões, separado pela coluna Veículo. Sem veículo, o app procura o caminhão no histórico e pelo nome do motorista. O que sobra: diesel e pedágio são rateados no mês de cada despesa pelo diesel dos abastecimentos (ou pelo frete das cargas, ou em partes iguais, quando faltam dados de metade dos cavalos); neste período: ${esc(M.baseNome)}; seguro e imposto em partes iguais entre os cavalos; o resto fica em Geral.</p>
+    </div>
+    <div class="panel"><h2>Lançar despesa</h2><form class="tp-form" id="tp-fdp" novalidate>
+      <div class="fields">
+        <div class="f"><label for="td-v">Valor (R$)</label><input id="td-v" inputmode="decimal" placeholder="0,00"></div>
+        <div class="f"><label for="td-d">Data</label><input type="date" id="td-d" value="${tpHoje()}"></div>
+        <div class="f full"><label for="td-h">O que foi</label><input id="td-h" placeholder="Oficina Mi Diesel, pneus Moovix..." autocomplete="off"></div>
+        <div class="f full"><label>De qual caminhão</label>${tpChipsCam("tp-cd", T.camDesp, [["Geral", "sem caminhão"]])}</div>
+        <div class="f"><label for="td-c">Tipo de despesa</label><select id="td-c">${cats.map(c => `<option ${c === "Manutenção de Veículos e Máquinas" ? "selected" : ""}>${esc(c)}</option>`).join("")}</select></div>
+        <div class="f"><label for="td-p">Por onde pagou</label><select id="td-p"><option value="">Escolha</option>${contas.map(c => `<option>${esc(c)}</option>`).join("")}</select></div>
+      </div>
+      <div class="actions"><button type="submit" class="primary" id="td-salvar">Gravar despesa</button>${tpStatus()}</div>
+      <p class="note" style="margin:0">Grava uma linha no Livro Razão (centro Transp. Simões, com o caminhão na coluna Veículo). Lançar aqui ou na aba Lançar dá no mesmo.</p>
+    </form></div>
+    <div class="panel"><h2>Lançamentos ${T.filtroDesp === "Todos" ? "" : "· " + esc(T.filtroDesp)}</h2><div class="tbl-wrap"><table><thead><tr><th>Data</th><th>O que foi</th><th>Caminhão</th><th class="v">Valor</th></tr></thead><tbody>
+      ${sel.slice().sort((a, b) => b.data.localeCompare(a.data)).slice(0, 80).map(d => {
+        const ps = Object.entries(d.partes).filter(([, v]) => v > 0.004);
+        const cam = ps.length === 1 ? esc(ps[0][0]) : `<span class="chip warn">rateio</span>`;
+        return `<tr><td>${fdata(d.data)}</td><td>${d.l ? `<a href="${linkLinha(d.linha)}" target="_blank" rel="noopener">${esc(d.hist)}</a>` : esc(d.hist)}<div class="mut" style="font-size:12px">${esc(d.cat)} · ${esc(d.como)}</div></td><td>${cam}</td><td class="v">${tpR(val(d))}</td></tr>`;
+      }).join("") || `<tr><td colspan="4" class="mut">Nada neste período.</td></tr>`}</tbody></table></div></div>`);
+  tpLigarChips("tp-fd", n => { T.filtroDesp = n; tpDespesas(); });
+  tpLigarChips("tp-cd", n => { T.camDesp = n; });
+  const dicas = [[/diesel|posto|shalon|copasul/, "Combustível"], [/ped[aá]gio|sem parar|balsa/, "Pedágios"], [/seguro/, "Seguros"], [/comiss/, "Comissões Pagas"],
+    [/ipva|licenc|despachante|imposto/, "Impostos e Taxas"], [/pneu|oficina|pe[cç]a|mec[aâ]nica|borrach|lavador|el[eé]trica|carroceria|retifica/, "Manutenção de Veículos e Máquinas"]];
+  $("td-h").addEventListener("input", () => { const h = semAcento($("td-h").value), x = dicas.find(([r]) => r.test(h)); if (x && CAT[x[1]]) $("td-c").value = x[1]; });
+  $("tp-fdp").onsubmit = e => {
+    e.preventDefault();
+    const v = tpNum($("td-v").value), h = $("td-h").value.trim(), conta = $("td-p").value;
+    const falta = [!v && "o valor", !h && "o que foi", contas.length && !conta && "por onde pagou"].filter(Boolean);
+    if (falta.length) { tpMsg("Falta " + falta.join(", ") + ".", "err"); return; }
+    $("td-salvar").disabled = true; tpMsg("Gravando…");
+    chamar("lancar", { data: $("td-d").value, historico: h, tipo: "saida", valor: Math.round(v * 100), categoria: $("td-c").value, centro: TP_CC,
+      veiculo: T.camDesp !== "Geral" && VEIC[T.camDesp] ? T.camDesp : "", conta, contraparte: "", observacao: "" })
+      .then(r => { T.msg = `Despesa gravada no Livro Razão (linha ${r.linha}).`; T.msgTipo = "ok"; carregar(); })
+      .catch(e => { $("td-salvar").disabled = false; tpMsg("Não gravou: " + e.message, "err"); });
+  };
+}
+
+// ---------- A receber ----------
+function tpReceber(rec) {
+  const tot = rec.abertas.reduce((a, c) => a + c.falta, 0), venc = rec.abertas.filter(c => c.prazo && c.dias > c.prazo);
+  const usadas = new Set((TD.recebimentos || []).map(r => Number(r.linhaLR)).filter(Boolean));
+  const entradas = LL.filter(l => l.grp === TP_CC && l.ent && !usadas.has(l.linha) && diasEntre(l.data, tpHoje()) <= 120).sort((a, b) => b.data.localeCompare(a.data)).slice(0, 40);
+  const pago = (TD.recebimentos || []).filter(r => semAcento(r.forma) === "diesel" && tpNoMes(r.data, T.mes)).reduce((a, r) => a + (r.valor || 0), 0);
+  tpCorpo(`
+    <div class="tp-kpis">
+      <div class="kpi"><div class="l">Total a receber</div><div class="n">${tpR0(tot)}</div><div class="h">${rec.abertas.length} cargas</div></div>
+      <div class="kpi"><div class="l">Passou do prazo</div><div class="n neg">${tpR0(venc.reduce((a, c) => a + c.falta, 0))}</div><div class="h">${venc.length} cargas</div></div>
+      <div class="kpi"><div class="l">Recebimentos sem baixa</div><div class="n">${entradas.length}</div><div class="h">entradas da Transp. Simões nos últimos 120 dias</div></div>
+      <div class="kpi"><div class="l">Pago em diesel no período</div><div class="n">${tpR0(pago)}</div></div>
+    </div>
+    ${Object.entries(rec.grupos).sort((a, b) => b[1].reduce((s, c) => s + c.falta, 0) - a[1].reduce((s, c) => s + c.falta, 0)).map(([cli, cs]) => {
+      const s = cs.reduce((a, c) => a + c.falta, 0), v = cs.filter(c => c.prazo && c.dias > c.prazo).reduce((a, c) => a + c.falta, 0), prazo = cs[0].prazo;
+      return `<div class="tp-item"><div class="tp-item-h"><b>${esc(cli)}</b><span class="num" style="font-size:16px">${tpR(s)}</span></div>
+        <div class="mut" style="font-size:12px">${cs.length} cargas · ${prazo ? "prazo " + prazo + " dias" : "prazo não informado"} · ${v ? `<span class="neg">${tpR(v)} passou do prazo</span>` : "nada vencido"}</div>
+        <div class="tp-age"><i style="width:${(s - v) / s * 100}%;background:var(--cre)"></i><i style="width:${v / s * 100}%;background:var(--deb)"></i></div>
+        <details ${T.baixa === cli ? "open" : ""} data-cli="${esc(cli)}"><summary class="link" style="margin-top:8px;cursor:pointer;color:var(--accent);font-weight:600">Dar baixa</summary>
+          <div class="tp-box">
+            ${cs.sort((a, b) => a.data.localeCompare(b.data)).map(c => `<label class="tp-check"><input type="checkbox" data-id="${esc(c.id)}"><span>${esc(c.id)} · ${fdata(c.data)} · ${esc(c.caminhao)}<br><span class="mut">${esc(c.origem || "")} → ${esc(c.destino || "")} · ${c.dias} dias</span></span><input type="text" inputmode="decimal" data-v="${esc(c.id)}" value="${tpN2(c.falta)}"></label>`).join("")}
+            <div class="fields">
+              <div class="f full"><label>O dinheiro que entrou</label><select data-lr><option value="">Escolha a entrada do Livro Razão</option>${entradas.map(l => `<option value="${l.linha}">${fdata(l.data)} · ${esc(l.hist)} · ${fmt(l.valor)}</option>`).join("")}<option value="diesel">Pago em diesel (não passou pelo caixa)</option><option value="outro">Outro (sem linha no Livro Razão)</option></select></div>
+            </div>
+            <div class="actions"><button type="button" class="primary" data-baixar>Gravar baixa</button><span class="status" data-st></span></div>
+          </div></details>
+        <div class="tbl-wrap" style="margin-top:6px"><table><tbody>${cs.map(c => `<tr><td>${esc(c.id)}</td><td>${fdata(c.data)}</td><td>${esc(c.caminhao)}</td><td class="v">${tpR(c.falta)}</td><td class="v ${c.prazo && c.dias > c.prazo ? "neg" : ""}">${c.dias} d</td></tr>`).join("")}</tbody></table></div></div>`;
+    }).join("") || `<div class="panel"><p class="note" style="margin:0">Nenhuma carga em aberto. As cargas lançadas em + Carga aparecem aqui até receberem a baixa.</p></div>`}
+    ${tpStatus()}`);
+  document.querySelectorAll("#tp-corpo details[data-cli]").forEach(det => {
+    const cli = det.dataset.cli, st = det.querySelector("[data-st]"), sel = det.querySelector("[data-lr]");
+    const somar = () => [...det.querySelectorAll("input[type=checkbox]:checked")].reduce((a, x) => a + tpNum(det.querySelector(`[data-v="${x.dataset.id}"]`).value), 0);
+    const mostrar = () => { const s = somar(), l = L["L" + sel.value]; st.className = "status"; st.textContent = s ? `Marcado: ${tpR(s)}` + (l ? ` · entrada ${fmt(l.valor)}${Math.abs(l.valor / 100 - s) < 0.02 ? " (bate)" : " (não bate)"}` : "") : ""; };
+    det.addEventListener("toggle", () => { if (det.open) T.baixa = cli; });
+    det.querySelectorAll("input").forEach(i => i.addEventListener("input", mostrar));
+    sel.onchange = () => {   // sugere as cargas mais antigas que somam o valor da entrada
+      const l = L["L" + sel.value];
+      if (l) { let resto = l.valor / 100; det.querySelectorAll("input[type=checkbox]").forEach(x => { const v = tpNum(det.querySelector(`[data-v="${x.dataset.id}"]`).value); x.checked = resto >= v - 0.009; if (x.checked) resto -= v; }); }
+      mostrar();
+    };
+    det.querySelector("[data-baixar]").onclick = () => {
+      const marcadas = [...det.querySelectorAll("input[type=checkbox]:checked")];
+      if (!marcadas.length) { st.textContent = "Marque as cargas recebidas."; st.className = "status err"; return; }
+      if (!sel.value) { st.textContent = "Escolha de onde veio o dinheiro."; st.className = "status err"; return; }
+      const l = L["L" + sel.value];
+      const itens = marcadas.map(x => ({ data: l ? l.data : tpHoje(), carga: x.dataset.id, cliente: cli, valor: tpNum(det.querySelector(`[data-v="${x.dataset.id}"]`).value),
+        forma: sel.value === "diesel" ? "Diesel" : l ? (l.contaNome || "Livro Razão") : "Outro", linhaLR: l ? l.linha : "" }));
+      st.textContent = "Gravando…"; st.className = "status";
+      chamar("salvarTransp", { tipo: "recebimentos", itens }).then(() => recarregarTransp()).then(() => { T.msg = `Baixa de ${itens.length} carga(s) de ${cli} gravada.`; T.msgTipo = "ok"; T.baixa = ""; vTransp(); })
+        .catch(e => { st.textContent = "Não gravou: " + e.message; st.className = "status err"; });
+    };
+  });
+}
+
+// ---------- Motoristas ----------
+function tpMotoristas() {
+  const ms = (TD.motoristas || []).filter(m => m.nome && semAcento(m.ativo) !== "nao");
+  if (!ms.length) { tpCorpo(`<div class="panel"><p class="note" style="margin:0">Nenhum motorista ativo na aba TR Motoristas.</p></div>`); return; }
+  tpCorpo(ms.map(m => {
+    const a = tpAcerto(m), cam = (TD.caminhoes || []).find(c => c.motorista === m.nome);
+    const wa = `Acerto ${m.nome} — ${fdata(tpHoje())}\n` + a.itens.slice(-15).map(x => `${fdata(x.data)} ${x.txt}: ${tpR(x.v)}`).join("\n") + `\n\nSaldo: ${tpR(a.saldo)} ${a.saldo >= 0 ? "a receber" : "a descontar"}`;
+    return `<div class="tp-item"><div class="tp-item-h"><div><b>${esc(m.nome)}</b> <span class="mut" style="font-size:12px">· ${esc(cam ? cam.nome : "sem caminhão")} · ${m.pct ? tpPct(m.pct) + " do frete" : "% não informado"}</span></div>
+      <div style="text-align:right"><div class="num ${a.saldo >= 0 ? "" : "neg"}" style="font-size:17px">${tpR(a.saldo)}</div><div class="mut" style="font-size:11px">${a.saldo >= 0 ? "o Deivid deve a ele" : "ele deve ao Deivid"}</div></div></div>
+      <div class="mut" style="font-size:12px">${a.desde ? "Acerto contado desde " + fdata(a.desde) : "Sem cargas lançadas: preencha \"Acerto controlado desde\" e o saldo inicial na aba TR Motoristas."}</div>
+      ${a.itens.length ? `<div class="tbl-wrap" style="margin-top:8px"><table><tbody>${a.itens.slice(-12).map(x => `<tr><td>${fdata(x.data)}</td><td>${esc(x.txt)}</td><td class="v ${x.v < 0 ? "neg" : ""}">${tpR(x.v)}</td></tr>`).join("")}</tbody></table></div>` : ""}
+      <details><summary style="margin-top:8px;cursor:pointer;color:var(--accent);font-weight:600">Desconto, diária ou despesa paga por ele</summary>
+        <div class="tp-box" data-m="${esc(m.nome)}"><div class="fields">
+          <div class="f"><label>Tipo</label><select data-t>${(TD.tiposAcerto || Object.keys(TP_SINAL)).map(t => `<option>${esc(t)}</option>`).join("")}</select></div>
+          <div class="f"><label>Valor (R$)</label><input data-v inputmode="decimal"></div>
+          <div class="f"><label>Data</label><input type="date" data-d value="${tpHoje()}"></div>
+          <div class="f"><label>Observação</label><input data-o placeholder="ex.: multa de excesso de peso"></div></div>
+          <div class="actions"><button type="button" class="primary" data-g>Gravar</button><span class="status" data-st></span></div>
+          <p class="note" style="margin:0">Pagamento e adiantamento ao motorista entram pelo Livro Razão (Comissões Pagas ou Salários, com o nome dele no histórico) e já descontam daqui.</p></div></details>
+      <details><summary style="margin-top:8px;cursor:pointer;color:var(--accent);font-weight:600">Texto do acerto para o WhatsApp</summary><pre class="tp-wa">${esc(wa)}</pre></details></div>`;
+  }).join("") + tpStatus());
+  document.querySelectorAll("#tp-corpo .tp-box[data-m]").forEach(b => {
+    const st = b.querySelector("[data-st]");
+    b.querySelector("[data-g]").onclick = () => {
+      const v = tpNum(b.querySelector("[data-v]").value);
+      if (!v) { st.textContent = "Falta o valor."; st.className = "status err"; return; }
+      st.textContent = "Gravando…"; st.className = "status";
+      chamar("salvarTransp", { tipo: "acerto", data: b.querySelector("[data-d]").value, motorista: b.dataset.m, tipo2: b.querySelector("[data-t]").value, valor: v, obs: b.querySelector("[data-o]").value.trim() })
+        .then(() => recarregarTransp()).then(() => { T.msg = "Acerto gravado."; T.msgTipo = "ok"; vTransp(); })
+        .catch(e => { st.textContent = "Não gravou: " + e.message; st.className = "status err"; });
+    };
+  });
+}
+
+// ---------- Caminhões ----------
+function tpCaminhoes(rec, venc) {
+  const todos = tpVencimentos();
+  tpCorpo(`<div class="panel"><h2>Caminhões e carretas</h2><div class="tbl-wrap"><table><thead><tr><th>Caminhão</th><th>Placa</th><th>Motorista</th><th class="v">Km atual</th><th class="v">Km/l</th><th class="v">Fixo/mês</th></tr></thead><tbody>
+    ${(TD.caminhoes || []).filter(c => c.nome).map(c => `<tr><td><b>${esc(c.nome)}</b><div class="mut" style="font-size:12px">${esc([c.tipo, c.modelo, c.ano].filter(Boolean).join(" · "))}${semAcento(c.ativo) === "nao" ? " · inativo" : ""}</div></td>
+      <td>${c.placa ? esc(c.placa) : `<span class="chip warn">falta</span>`}</td><td>${esc(c.motorista || "—")}</td><td class="v">${tpKmAtual(c.nome) ? tpN0(tpKmAtual(c.nome)) : "—"}</td>
+      <td class="v">${tpKml(c.nome) ? tpN2(tpKml(c.nome)) : "—"}</td><td class="v">${c.fixoMes ? tpR0(c.fixoMes) : "—"}</td></tr>`).join("")}</tbody></table></div>
+    <p class="note">Placa, motorista, troca de óleo e custo fixo são editados na planilha. ${tpLinkAba("caminhoes") ? `<a href="${tpLinkAba("caminhoes")}" target="_blank" rel="noopener">Abrir a aba TR Caminhões</a> · ` : ""}${tpLinkAba("motoristas") ? `<a href="${tpLinkAba("motoristas")}" target="_blank" rel="noopener">TR Motoristas</a> · ` : ""}${tpLinkAba("clientes") ? `<a href="${tpLinkAba("clientes")}" target="_blank" rel="noopener">TR Clientes</a>` : ""}</p></div>
+    <div class="panel"><h2>Vencimentos e manutenção</h2>${todos.length ? `<div class="tbl-wrap"><table><thead><tr><th>Quem</th><th>O quê</th><th>Quando</th></tr></thead><tbody>${todos.map(v => {
+      const q = v.dias != null ? (v.dias < 0 ? ["bad", `venceu há ${-v.dias} dias`] : [v.dias <= 30 ? "warn" : "ok", `${fdata(v.vence)} · ${v.dias} dias`]) : [v.km <= 0 ? "bad" : v.km <= 2000 ? "warn" : "ok", v.km <= 0 ? `passou ${tpN0(-v.km)} km` : `faltam ${tpN0(v.km)} km`];
+      return `<tr><td>${esc(v.quem)}</td><td>${esc(v.doc)}</td><td><span class="chip ${q[0]}">${q[1]}</span></td></tr>`; }).join("")}</tbody></table></div>`
+      : `<p class="note" style="margin:0">Nenhum vencimento cadastrado. Preencha a aba TR Vencimentos (CRLV, seguro, RNTRC, tacógrafo), a CNH e o toxicológico em TR Motoristas e a troca de óleo em TR Caminhões.</p>`}
+      ${tpLinkAba("vencimentos") ? `<p class="note"><a href="${tpLinkAba("vencimentos")}" target="_blank" rel="noopener">Abrir a aba TR Vencimentos</a></p>` : ""}</div>`);
+}
+
+// ---------- Vale o frete? ----------
+function tpSimular() {
+  const cavs = (TD.caminhoes || []).filter(c => c.nome && semAcento(c.ativo) !== "nao" && semAcento(c.tipo) !== "carreta");
+  if (!T.camSim || !cavs.find(c => c.nome === T.camSim)) T.camSim = (cavs[0] || {}).nome || "";
+  const ultDiesel = (TD.abastecimentos || []).filter(a => a.litros).slice(-1)[0];
+  tpCorpo(`<div class="panel"><h2>Vale a pena pegar este frete?</h2><div class="tp-form">
+    <div class="f"><label>Caminhão</label>${tpChipsCam("tp-cs", T.camSim, null, true)}</div>
+    <div class="fields">
+      <div class="f"><label for="ts-dist">Distância de ida (km)</label><input id="ts-dist" inputmode="numeric" value="180"></div>
+      <div class="f"><label for="ts-volta">Volta</label><select id="ts-volta"><option value="1">Vazio</option><option value="0.5">Meia volta carregado</option><option value="0">Volta carregado</option></select></div>
+      <div class="f"><label for="ts-peso">Peso (kg)</label><input id="ts-peso" inputmode="numeric" value="37000"></div>
+      <div class="f"><label for="ts-rt">R$ por tonelada oferecido</label><input id="ts-rt" inputmode="decimal" value="85"></div>
+      <div class="f"><label for="ts-ped">Pedágio / balsa (R$)</label><input id="ts-ped" inputmode="decimal" value="0"></div>
+      <div class="f"><label for="ts-die">Preço do diesel (R$/l)</label><input id="ts-die" inputmode="decimal" value="${ultDiesel ? tpN2(ultDiesel.valor / ultDiesel.litros) : "6,19"}"></div>
+      <div class="f"><label for="ts-kml">Km por litro</label><input id="ts-kml" inputmode="decimal"></div>
+      <div class="f"><label for="ts-man">Manutenção por km (R$)</label><input id="ts-man" inputmode="decimal" value="0,50"></div>
+    </div><div id="ts-res"></div>
+    <p class="note" style="margin:0">O km/l vem dos abastecimentos do caminhão; sem eles, 2,4. A manutenção por km é uma estimativa até haver km anotado nas cargas. Parcela, seguro e IPVA não entram: existem com ou sem a viagem.</p></div></div>`);
+  const pegar = n => { T.camSim = n; const k = tpKml(n); $("ts-kml").value = tpN2(k || 2.4); calc(); };
+  const calc = () => {
+    const cam = cavs.find(c => c.nome === T.camSim) || {}, m = (TD.motoristas || []).find(x => x.nome === cam.motorista);
+    const dist = tpNum($("ts-dist").value), km = dist + dist * Number($("ts-volta").value), frete = tpNum($("ts-peso").value) / 1000 * tpNum($("ts-rt").value);
+    const diesel = km / (tpNum($("ts-kml").value) || 2.4) * tpNum($("ts-die").value), com = frete * (m && m.pct ? m.pct : 0.13), ped = tpNum($("ts-ped").value), man = km * tpNum($("ts-man").value);
+    const sobra = frete - diesel - com - ped - man, porKm = km ? sobra / km : 0;
+    const cls = porKm >= 1.5 ? "ok" : porKm >= 0.8 ? "mid" : "bad";
+    $("ts-res").innerHTML = `<div class="tp-calc"><div>Frete<b>${tpR(frete)}</b></div><div>Diesel (${tpN0(km)} km)<b>${tpR(diesel)}</b></div><div>Comissão<b>${tpR(com)}</b></div>
+      <div>Pedágio<b>${tpR(ped)}</b></div><div>Manutenção<b>${tpR(man)}</b></div><div>Sobra por km<b>${tpR(porKm)}</b></div></div>
+      <div class="tp-verdict ${cls}"><b>${tpR(sobra)}</b>${cls === "ok" ? "Vale a pena." : cls === "mid" ? "Paga a viagem, mas sobra pouco para os custos fixos." : "Não compensa neste preço."}</div>`;
+  };
+  tpLigarChips("tp-cs", pegar); pegar(T.camSim);
+  ["ts-dist", "ts-volta", "ts-peso", "ts-rt", "ts-ped", "ts-die", "ts-kml", "ts-man"].forEach(id => $(id).addEventListener("input", calc));
+}
+</script>
+<!-- /TRANSP:JS -->
 <script>
 // ================= estrutura fixa do plano de contas (contas sintéticas) =================
 const SINTETICAS = {
@@ -657,7 +1325,7 @@ function chamar(acao, dado) {
   if (DENTRO_DA_PLANILHA) {
     return new Promise((ok, falha) => {
       const r = google.script.run.withSuccessHandler(ok).withFailureHandler(e => falha(new Error(e && e.message ? e.message : String(e))));
-      acao === "dados" ? r.getDados() : r.lancar(dado);
+      ({ dados: () => r.getDados(), lancar: () => r.lancar(dado), transp: () => r.getTransp(), salvarTransp: () => r.salvarTransp(dado) })[acao]();
     });
   }
   return fetch(CONEXAO.url, {
@@ -679,7 +1347,7 @@ function carregar(motivo) {
   if (!DENTRO_DA_PLANILHA && !CONEXAO.chave) { pedirAcesso(); return; }
   carregando = true;
   $("btn-atualizar").textContent = "Atualizando…";
-  chamar("dados").then(d => {
+  Promise.all([chamar("dados"), recarregarTransp()]).then(([d]) => {
     carregando = false; ultimaLeitura = Date.now();
     $("btn-atualizar").textContent = "Atualizar";
     try { montarModelo(d); } catch (e) { mostrarErro("Não consegui montar o painel com os dados da planilha: " + e.message); return; }
@@ -742,7 +1410,7 @@ function abrir(v) { document.querySelector(`#tabs button[data-v="${v}"]`).click(
 
 // ================= modo simples (Deivid) x modo contador =================
 // O modo simples mostra só Lançar, Meus lançamentos e Resumo do mês, sem códigos de conta nem débito e crédito.
-const VIEWS_SIMPLES = ["lancar", "meus", "mes"], VIEWS_CONTADOR = ["resumo", "lancar", "diario", "contas", "veiculos", "razao", "balancete", "plano"];
+const VIEWS_SIMPLES = ["lancar", "meus", "mes", "transp"], VIEWS_CONTADOR = ["resumo", "lancar", "diario", "contas", "veiculos", "transp", "razao", "balancete", "plano"];
 const viewOk = v => (S.modo === "simples" ? VIEWS_SIMPLES : VIEWS_CONTADOR).includes(v);
 function aplicarModo() {
   document.body.classList.toggle("simples", S.modo === "simples");
@@ -1374,6 +2042,201 @@ $("n-form").addEventListener("submit", e => {
   });
 });
 
+// ================= COLAR DO CLAUDE (versão 8) =================
+// O Claude do Deivid devolve os lançamentos num bloco JSON (formato em "Claude do Deivid — instruções.md").
+// O Deivid cola, confere cada um (negócio, tipo, conta, Ronei) e grava. Cada lançamento usa a mesma chamada
+// "lancar" do formulário, um por vez: o Codigo.gs não muda. O que parece já estar na planilha vem desmarcado.
+const CL = { itens: [], gravando: false, seq: 0 };
+const campo = (o, ...nomes) => { for (const [k, v] of Object.entries(o)) if (nomes.includes(semAcento(k).replace(/[^a-z]/g, ""))) return v; return undefined; };
+function acharNome(nomes, txt) {
+  const q = semAcento(txt); if (!q) return "";
+  const lista = nomes.map(n => [n, semAcento(n)]);
+  const igual = lista.find(([, s]) => s === q); if (igual) return igual[0];
+  const contem = lista.filter(([, s]) => s.includes(q) || q.includes(s));
+  if (contem.length === 1) return contem[0][0];
+  const pal = q.split(/[^a-z0-9]+/).filter(p => p.length >= 4);
+  const porPalavra = lista.filter(([, s]) => pal.some(p => s.includes(p)));
+  return porPalavra.length === 1 ? porPalavra[0][0] : "";
+}
+const APELIDOS_CC = [[/transport|simoes|\btr\b|frete|caminh/, "simoes"], [/estancia|fazenda|\bdr\b|gado|ronei/, "estancia"], [/avante|escola/, "avante"], [/rural/, "rural"], [/pessoal|casa|famili/, "pessoal"]];
+function acharNegocio(txt) {
+  const nomes = Object.values(CC), q = semAcento(txt); if (!q) return "";
+  const n = acharNome(nomes, q); if (n) return n;
+  const ap = APELIDOS_CC.find(([re]) => re.test(q));
+  return ap ? (nomes.find(x => semAcento(x).includes(ap[1])) || "") : "";
+}
+function categoriasDoLado(lado) {
+  const ok = lado === "saida" ? ["DESPESA", "ATIVO", "PASSIVO"] : lado === "entrada" ? ["RECEITA", "ATIVO", "PASSIVO", "PL"] : null;
+  return Object.entries(CAT).filter(([, cod]) => !ok || ok.includes(C[cod].tipo) || cod === A_CLASSIFICAR).map(([n]) => n);
+}
+function lerData(v) {
+  const s = String(v ?? "").trim(); let m;
+  if ((m = s.match(/^(\d{4})-(\d{2})-(\d{2})/))) return `${m[1]}-${m[2]}-${m[3]}`;
+  if ((m = s.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2}|\d{4}))?$/))) {
+    const a = m[3] ? (m[3].length === 2 ? "20" + m[3] : m[3]) : (INFO.hoje || "").slice(0, 4);
+    return `${a}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
+  }
+  return "";
+}
+function lerValorColado(v) {   // número (350.5) ou texto brasileiro ("1.234,56"); o sinal de menos só diz que é saída
+  if (typeof v === "number") return { c: isFinite(v) ? Math.round(Math.abs(v) * 100) : 0, neg: v < 0 };
+  const t = String(v ?? "").replace(/[R$\s]/g, "");
+  return { c: parseValor(t.replace(/^-/, "")), neg: t.startsWith("-") };
+}
+function lerColagem(txt) {
+  const s = String(txt || "").replace(/```(json)?/gi, "");
+  const i = s.search(/[[{]/), j = Math.max(s.lastIndexOf("]"), s.lastIndexOf("}"));
+  if (i < 0) throw new Error('Não achei lançamentos no texto. Peça ao Claude: "me dá no formato do Livro Razão".');
+  if (j < i) throw new Error("O texto colado veio incompleto. Copie de novo a resposta inteira do Claude (o bloco com os lançamentos).");
+  let d; try { d = JSON.parse(s.slice(i, j + 1)); } catch (e) { throw new Error("O texto colado veio incompleto. Copie de novo a resposta inteira do Claude (o bloco com os lançamentos)."); }
+  const lista = Array.isArray(d) ? d : Array.isArray(d.lancamentos) ? d.lancamentos : [d];
+  return lista.filter(x => x && typeof x === "object" && !Array.isArray(x));
+}
+function itemDaColagem(o) {
+  const val = lerValorColado(campo(o, "valor"));
+  const tt = semAcento(campo(o, "tipo"));
+  const tipo = /^(entr|receb|credito|receita)/.test(tt) ? "entrada" : /^(said|sai|pag|gasto|debito|despesa)/.test(tt) ? "saida" : val.neg ? "saida" : "";
+  const hist = String(campo(o, "historico", "oquefoi", "descricao") ?? "").trim();
+  const it = { id: ++CL.seq, data: lerData(campo(o, "data")), tipo, valor: val.c, hist,
+    cc: acharNegocio(campo(o, "negocio", "centro", "centrodecusto")), cat: "", conta: "", parte: "", veic: "",
+    cp: String(campo(o, "contraparte", "pagoupara", "recebeude") ?? "").trim(), obs: String(campo(o, "observacao", "obs") ?? "").trim(),
+    marcado: true, estado: "novo", sugerido: false, repetido: false, linha: 0, erro: "" };
+  it.cat = acharNome(categoriasDoLado(tipo), campo(o, "categoria", "tipodegasto", "tipodeentrada"));
+  const s = hist && tipo ? sugerir(hist, tipo) : null;   // o que faltou vem do histórico, como no formulário
+  if (!it.cat && s && CAT[s.cat] && categoriasDoLado(tipo).includes(s.cat)) { it.cat = s.cat; it.sugerido = true; }
+  if (!it.cc && s && s.cc && CC_POR_NOME[s.cc]) { it.cc = s.cc; it.sugerido = true; }
+  it.conta = acharNome(Object.values(CONTAS), campo(o, "conta", "banco", "porondepassou"));
+  const r = campo(o, "ronei", "meioameio", "parteronei"), rt = r === true ? "sim" : r === false ? "nao" : semAcento(r);
+  it.parte = /^(sim|s$|meio|50|0[.,]5|1\/2)/.test(rt) ? "0.5" : /^(nao|n$|0$|so do deivid)/.test(rt) ? "0" : (s && s.pt && s.cc === it.cc ? s.pt : "");
+  const vNome = acharNome(Object.keys(VEIC), campo(o, "veiculo")) || acharVeiculo(hist);
+  it.veic = VEIC[vNome] ? vNome : "";
+  if (it.veic && !it.cc && VEIC[it.veic].ccNome && CC_POR_NOME[VEIC[it.veic].ccNome]) it.cc = VEIC[it.veic].ccNome;
+  return it;
+}
+function problemasItem(it) {
+  const porConta = Object.keys(CONTAS).length > 0, p = [];
+  if (!it.valor) p.push("falta o valor (apague e peça de novo ao Claude)");
+  if (!it.data) p.push("falta a data");
+  if (!it.tipo) p.push("diga se é entrada ou saída");
+  if (!it.hist) p.push("falta o que foi");
+  if (porConta && !it.conta) p.push("escolha por onde o dinheiro passou");
+  if (!it.cat) p.push(it.tipo === "entrada" ? "escolha o tipo de entrada" : "escolha o tipo de gasto");
+  if (!it.cc && CAT[it.cat] !== "2.3.01") p.push("escolha o negócio");
+  if (porConta && ehEstancia(it.cc) && it.parte === "") p.push("diga se é meio a meio com o Ronei");
+  return p;
+}
+// mesmo valor, mesmo lado e até 3 dias de diferença: provavelmente já foi lançado (pelo app, pela planilha ou numa colagem anterior)
+const jaNaPlanilha = it => it.valor && it.data && it.tipo ? LL.find(l => l.valor === it.valor && l.ent === (it.tipo === "entrada") && Math.abs(diasEntre(l.data, it.data)) <= 3) || null : null;
+function desenharColagem() {
+  const box = $("c-lista"); if (!box || !Object.keys(C).length) return;
+  const porConta = Object.keys(CONTAS).length > 0;
+  const opt = (lista, sel, vazio) => `<option value="">${vazio}</option>` + lista.map(n => `<option value="${esc(n)}" ${n === sel ? "selected" : ""}>${esc(n)}</option>`).join("");
+  box.innerHTML = CL.itens.map(it => {
+    const ent = it.tipo === "entrada", gravado = it.estado === "gravado";
+    const prob = gravado ? [] : problemasItem(it), dup = gravado ? null : jaNaPlanilha(it);
+    const sel = (k, rot, html) => `<div class="f"><label>${rot}</label><select data-k="${k}" aria-label="${rot}" ${CL.gravando ? "disabled" : ""}>${html}</select></div>`;
+    const campos = gravado ? "" : `<div class="fields">
+        ${it.tipo ? "" : sel("tipo", "Entrada ou saída", `<option value="">Escolha</option><option value="saida">Saída de dinheiro</option><option value="entrada">Entrada de dinheiro</option>`)}
+        ${it.data ? "" : `<div class="f"><label>Data</label><input type="date" data-k="data" aria-label="Data"></div>`}
+        ${sel("cc", "De qual negócio", opt(Object.values(CC), it.cc, "Escolha o negócio"))}
+        ${sel("cat", ent ? "Tipo de entrada" : "Tipo de gasto", opcoesCategoria(it.tipo || "saida", it.cat))}
+        ${porConta ? sel("conta", "Por onde o dinheiro passou", opt(Object.values(CONTAS), it.conta, "Escolha o banco ou dinheiro")) : ""}
+        ${porConta && ehEstancia(it.cc) ? sel("parte", "É meio a meio com o Ronei?", `<option value="">Escolha</option><option value="0" ${it.parte === "0" ? "selected" : ""}>Não, só do Deivid</option><option value="0.5" ${it.parte === "0.5" ? "selected" : ""}>Sim, meio a meio</option>`) : ""}
+        ${CATS_VEICULO.includes(it.cat) || it.veic ? sel("veic", "Qual veículo", opt(Object.keys(VEIC), it.veic, "Nenhum")) : ""}
+      </div>`;
+    const avisos = gravado ? [`<span class="chip ok">Gravado na linha ${it.linha}</span>`] : [
+      it.estado === "gravando" ? `<span class="chip acc">Gravando…</span>` : "",
+      it.erro ? `<span class="chip bad">Não gravou: ${esc(it.erro)}</span>` : "",
+      dup ? `<span class="chip bad">Parece já estar na planilha: linha ${dup.linha}, ${fdata(dup.data)}, ${esc(dup.hist)}</span>` : "",
+      it.repetido ? `<span class="chip bad">Repetido na lista colada</span>` : "",
+      ...prob.map(t => `<span class="chip warn">${esc(t)}</span>`),
+      it.sugerido && !prob.length ? `<span class="chip plain">negócio ou tipo sugerido pelo histórico</span>` : "",
+    ];
+    return `<div class="citem ${gravado || !it.marcado ? "fora" : ""}" data-i="${it.id}">
+      <div class="topo">
+        <input type="checkbox" data-k="marcado" ${it.marcado || gravado ? "checked" : ""} ${gravado || CL.gravando ? "disabled" : ""} aria-label="Lançar ${esc(it.hist)}">
+        <div><div class="h">${esc(it.hist || "(sem descrição)")}</div><div class="d">${it.data ? fdata(it.data) : "sem data"}${it.cp ? " · " + esc(it.cp) : ""}</div></div>
+        <div class="amt ${ent ? "pos" : "neg"}">${it.tipo ? (ent ? "+ " : "− ") : ""}${fmt(it.valor)}</div>
+      </div>
+      ${campos}
+      <div class="avisos">${avisos.join("")}</div>
+    </div>`;
+  }).join("");
+  const prontos = CL.itens.filter(it => it.marcado && it.estado !== "gravado" && !problemasItem(it).length);
+  const gravados = CL.itens.filter(it => it.estado === "gravado").length;
+  const faltam = CL.itens.filter(it => it.marcado && it.estado !== "gravado" && problemasItem(it).length).length;
+  const erro = CL.itens.find(it => it.erro);
+  $("c-acoes").hidden = !CL.itens.length;
+  $("c-gravar").disabled = !prontos.length || CL.gravando;
+  $("c-gravar").textContent = prontos.length ? `Gravar ${prontos.length} ${prontos.length === 1 ? "lançamento" : "lançamentos"}` : "Gravar";
+  const g = $("c-gstatus");
+  if (CL.gravando) return;
+  if (erro) { g.textContent = `Parou em "${erro.hist}". Confira em Meus lançamentos se ele entrou antes de gravar de novo.`; g.className = "status err"; }
+  else if (gravados && !prontos.length && !faltam) { g.textContent = `Pronto: ${gravados} ${gravados === 1 ? "lançamento gravado" : "lançamentos gravados"} na planilha.`; g.className = "status ok"; }
+  else { g.textContent = [gravados ? `${gravados} já gravados.` : "", faltam ? `${faltam} ${faltam === 1 ? "precisa" : "precisam"} de ajuste antes de gravar.` : ""].filter(Boolean).join(" "); g.className = "status"; }
+}
+$("c-abrir").onclick = () => {
+  const abrir = $("c-corpo").hidden;
+  $("c-corpo").hidden = !abrir; $("c-abrir").setAttribute("aria-expanded", String(abrir));
+  $("c-abrir").textContent = abrir ? "Fechar" : "Colar lançamentos";
+  if (abrir) $("c-texto").focus();
+};
+$("c-colar").hidden = !(navigator.clipboard && navigator.clipboard.readText);
+$("c-colar").onclick = () => navigator.clipboard.readText().then(t => { $("c-texto").value = t; $("c-ler").click(); }, () => { $("c-texto").focus(); });
+$("c-ler").onclick = () => {
+  const st = $("c-status");
+  if (CL.gravando) return;
+  if (!Object.keys(C).length) { st.textContent = "Espere a planilha carregar."; st.className = "status err"; return; }
+  try {
+    const lista = lerColagem($("c-texto").value);
+    if (!lista.length) throw new Error("O texto colado não tem nenhum lançamento.");
+    const novos = lista.map(itemDaColagem);
+    novos.forEach((it, i) => {
+      it.repetido = novos.slice(0, i).some(o => o.valor === it.valor && o.tipo === it.tipo && o.data === it.data && semAcento(o.hist) === semAcento(it.hist));
+      if (it.repetido || jaNaPlanilha(it)) it.marcado = false;
+    });
+    CL.itens = novos;
+    st.textContent = `${novos.length} ${novos.length === 1 ? "lançamento" : "lançamentos"} para conferir.`; st.className = "status ok";
+  } catch (e) { CL.itens = []; st.textContent = e.message; st.className = "status err"; }
+  desenharColagem();
+};
+$("c-limpar").onclick = () => { if (CL.gravando) return; CL.itens = []; $("c-texto").value = ""; $("c-status").textContent = ""; $("c-gstatus").textContent = ""; desenharColagem(); };
+$("c-lista").addEventListener("change", e => {
+  const el = e.target.closest("[data-k]"), card = e.target.closest("[data-i]"); if (!el || !card) return;
+  const it = CL.itens.find(x => x.id === Number(card.dataset.i)); if (!it || it.estado === "gravado") return;
+  const k = el.dataset.k, v = el.type === "checkbox" ? el.checked : el.value;
+  it[k] = v; it.erro = "";
+  if (k === "cc" || k === "cat") it.sugerido = false;
+  if (k === "cc" && !ehEstancia(v)) it.parte = "";
+  if (k === "tipo" && !categoriasDoLado(v).includes(it.cat)) it.cat = "";
+  // o extrato é de um banco só: escolher a conta num lançamento preenche os outros que estão sem conta
+  if (k === "conta" && v) CL.itens.forEach(o => { if (!o.conta && o.estado !== "gravado") o.conta = v; });
+  desenharColagem();
+});
+$("c-gravar").onclick = async () => {
+  const fila = CL.itens.filter(it => it.marcado && it.estado !== "gravado" && !problemasItem(it).length);
+  if (!fila.length || CL.gravando) return;
+  CL.gravando = true; CL.itens.forEach(it => it.erro = "");
+  let n = 0;
+  for (const it of fila) {
+    it.estado = "gravando"; desenharColagem();
+    $("c-gstatus").textContent = `Gravando ${++n} de ${fila.length}…`; $("c-gstatus").className = "status";
+    try {
+      const r = await chamar("lancar", { data: it.data, historico: it.hist, tipo: it.tipo, valor: it.valor, categoria: it.cat, centro: it.cc,
+        contraparte: it.cp, observacao: it.obs, veiculo: it.veic, conta: it.conta, parteRonei: Number(it.parte) || 0 });
+      it.estado = "gravado"; it.linha = r.linha;
+      try { if (it.conta) localStorage.setItem("lr-conta", it.conta); } catch (e) {}
+    } catch (err) {
+      it.estado = "novo"; it.erro = err && err.message ? err.message : "Não foi possível gravar.";
+      if (err.codigo === "chave_invalida" || err.codigo === "sem_chave") { CL.gravando = false; pedirAcesso(err.message); return; }
+      break;   // para no primeiro erro: o resto fica marcado para gravar depois
+    }
+  }
+  CL.gravando = false;
+  desenharColagem();
+  carregar("lancou");   // relê a planilha: os lançamentos novos entram nas listas, no resumo e na conferência de repetidos
+};
+
 function vLancar() {
   const ult = LL.slice().sort((a, b) => b.linha - a.linha).slice(0, 15);
   $("n-lista").innerHTML = ult.map(l => {
@@ -1387,6 +2250,7 @@ function vLancar() {
   }).join("") || `<div class="empty">A planilha ainda não tem lançamentos. O primeiro que você fizer aparece aqui.</div>`;
   $("n-lista").querySelectorAll(".entry").forEach(en => en.onclick = ev => { if (ev.target.closest("a")) return; detalhe(en.dataset.l); });
   atualizarPrevia();
+  desenharColagem();
 }
 
 // ================= MEUS LANÇAMENTOS (modo simples) =================
@@ -1516,7 +2380,7 @@ function vMes() {
 // ================= navegação =================
 function render() {
   if (!Object.keys(C).length) return;
-  ({ resumo: vResumo, lancar: vLancar, meus: vMeus, mes: vMes, contas: vContas, veiculos: vVeiculos, balancete: vBalancete, razao: vRazao, diario: vDiario, plano: vPlano })[S.view]();
+  ({ resumo: vResumo, lancar: vLancar, meus: vMeus, mes: vMes, contas: vContas, veiculos: vVeiculos, balancete: vBalancete, razao: vRazao, diario: vDiario, plano: vPlano, transp: vTransp })[S.view]();
 }
 // abre no modo simples, a não ser que este aparelho tenha escolhido o modo contador
 try { S.modo = localStorage.getItem("lr-modo") === "contador" ? "contador" : "simples"; S.view = localStorage.getItem("lr-view") || ""; } catch (e) {}
