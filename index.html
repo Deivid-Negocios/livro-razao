@@ -350,6 +350,7 @@ nav.tabs .curto { display: none; }
 .tp-marca b { font-size: 17px; display: block; }
 .tp-sub { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
 .tp-sub button { font: inherit; font-weight: 600; font-size: 13px; white-space: nowrap; border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 18px; padding: 7px 13px; cursor: pointer; }
+.tp-sub .tp-sub-link { font-weight: 600; font-size: 13px; white-space: nowrap; border: 1px solid var(--line); background: var(--surface); color: var(--accent); border-radius: 18px; padding: 7px 13px; text-decoration: none; }
 .tp-sub button[aria-pressed=true] { background: var(--cover); border-color: var(--cover); color: var(--cover-fg); }
 .tp-sub .badge { font-family: var(--f-num); font-size: 11px; background: var(--warn-soft); color: var(--warn); border-radius: 10px; padding: 0 6px; margin-left: 4px; }
 .tp-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
@@ -399,6 +400,8 @@ pre.tp-wa { white-space: pre-wrap; font-family: var(--f-ui); font-size: 13px; ba
 @media (max-width: 420px) { .tp-check input[type=text] { width: 92px; } }
 #v-transp, #tp-corpo { grid-template-columns: minmax(0, 1fr); min-width: 0; }
 #v-transp > *, #tp-corpo > * { min-width: 0; }
+
+.tp-btn-link { display: inline-flex; align-items: center; font-weight: 600; font-size: 13px; border: 1px solid var(--line); background: var(--surface); color: var(--accent); border-radius: 8px; padding: 8px 12px; text-decoration: none; }
 <!-- /TRANSP:CSS -->
 
 /* ---------- aplicativo instalado (PWA) ---------- */
@@ -601,13 +604,16 @@ function tpCustosTanque(movs) {   // a mesma conta da página do tanque: preço 
   });
   return { pm, custo, saldo: L };
 }
+const tpEhProprio = destino => /^pr[oó]prio:/i.test(String(destino || ""));
 function tpPrepararTanque(d) {
   const movs = (d.tanque || []).map((m, i) => ({ m, i })).sort((a, b) => a.m.data < b.m.data ? -1 : a.m.data > b.m.data ? 1 : a.i - b.i).map(x => x.m);
   const cus = tpCustosTanque(movs);
   d.tq = { movs, pm: cus.pm, saldo: cus.saldo, inicio: (movs.find(m => m.tipo === "Saldo inicial") || {}).data || "",
     ruralSemRecibo: movs.filter(m => m.tipo === "Saída" && m.destino === "Empilhadeiras Rural" && !m.recibo),
-    recibosAbertos: (d.recibos || []).filter(r => !r.recebido) };
-  d.abastecimentos = (d.abastecimentos || []).concat(movs.filter(m => m.tipo === "Saída" && m.destino !== "Empilhadeiras Rural").map(m => ({
+    recibosAbertos: (d.recibos || []).filter(r => !r.recebido),
+    // carro próprio do Deivid ("Próprio: Amarok"): não é despesa da transportadora, é Pessoal (pelo preço médio da hora)
+    proprios: movs.filter(m => m.tipo === "Saída" && tpEhProprio(m.destino)).map(m => ({ ...m, valor: Math.round(m.litros * (cus.custo[m.id] || 0) * 100) / 100 })) };
+  d.abastecimentos = (d.abastecimentos || []).concat(movs.filter(m => m.tipo === "Saída" && m.destino !== "Empilhadeiras Rural" && !tpEhProprio(m.destino)).map(m => ({
     id: m.id, data: m.data, caminhao: m.destino, posto: "Tanque", litros: m.litros, valor: Math.round(m.litros * (cus.custo[m.id] || 0) * 100) / 100,
     km: m.km, cheio: "Sim", pagoPor: "Tanque", obs: `Saída do tanque ${m.id}${m.motorista ? " · " + m.motorista : ""}`, tanque: true })));
   return d;
@@ -764,7 +770,7 @@ function vTransp() {
       <select id="tp-mes" aria-label="Mês">${[["ano", "Ano de " + tpHoje().slice(0, 4)], ...meses.map(m => [m, MESES[Number(m.slice(5, 7)) - 1] + "/" + m.slice(0, 4)])]
         .map(([v, t]) => `<option value="${v}" ${v === T.mes ? "selected" : ""}>${t}</option>`).join("")}</select>
     </div>
-    <nav class="tp-sub" aria-label="Transportadora">${TP_SUBS.map(([k, t]) => `<button type="button" data-s="${k}" aria-pressed="${k === T.sub}">${t}${badge[k] ? `<span class="badge">${badge[k]}</span>` : ""}</button>`).join("")}</nav>
+    <nav class="tp-sub" aria-label="Transportadora">${TP_SUBS.map(([k, t]) => `<button type="button" data-s="${k}" aria-pressed="${k === T.sub}">${t}${badge[k] ? `<span class="badge">${badge[k]}</span>` : ""}</button>`).join("")}${tpLinkTanque() ? `<a class="tp-sub-link" href="${tpLinkTanque()}" target="_blank" rel="noopener" title="Abre o controle do tanque de diesel numa aba nova">⛽ Tanque ↗</a>` : ""}</nav>
     <div id="tp-corpo" style="display:grid;gap:16px"></div>`;
   $("tp-mes").onchange = () => { T.mes = $("tp-mes").value; vTransp(); };
   el.querySelectorAll(".tp-sub button").forEach(b => b.onclick = () => { T.sub = b.dataset.s; T.msg = ""; vTransp(); });
@@ -802,7 +808,9 @@ function tpResumo(rec, venc) {
   if (semPlaca) alertas.push(`ℹ <div><b>${semPlaca} caminhões sem placa</b> no cadastro. ${tpLinkAba("caminhoes") ? `<a href="${tpLinkAba("caminhoes")}" target="_blank" rel="noopener">Completar na planilha</a>` : ""}</div>`);
   if (TD.tq && TD.tq.inicio) {
     const q = TD.tq, rl = q.ruralSemRecibo.reduce((a, m) => a + m.litros, 0), ra = q.recibosAbertos.reduce((a, x) => a + (x.total || 0), 0), lk = tpLinkTanque();
-    alertas.push(`⛽ <div><b>Tanque: ${tpN0(q.saldo)} litros</b>${q.pm ? `, preço médio ${tpR(q.pm)}/l` : ", sem preço (falta o valor da primeira compra)"}.${rl ? ` ${tpN0(rl)} l para as empilhadeiras da Rural ainda sem recibo.` : ""}${ra ? ` Recibos da Rural em aberto: ${tpR0(ra)}.` : ""} ${lk ? `<a href="${lk}" target="_blank" rel="noopener">Abrir o controle do tanque</a>` : ""}</div>`);
+    const pr = q.proprios.filter(m => tpNoMes(m.data, T.mes)), prL = pr.reduce((a, m) => a + m.litros, 0), prV = pr.reduce((a, m) => a + m.valor, 0);
+    const prNomes = [...new Set(pr.map(m => m.destino.replace(/^pr[oó]prio:\s*/i, "")))].join(", ");
+    alertas.push(`⛽ <div><b>Tanque: ${tpN0(q.saldo)} litros</b>${q.pm ? `, preço médio ${tpR(q.pm)}/l` : ", sem preço (falta o valor da primeira compra)"}.${rl ? ` ${tpN0(rl)} l para as empilhadeiras da Rural ainda sem recibo.` : ""}${ra ? ` Recibos da Rural em aberto: ${tpR0(ra)}.` : ""}${prL ? ` Carros próprios (${esc(prNomes)}) neste período: ${tpN0(prL)} l, ${tpR0(prV)} pelo preço médio. Conta como Pessoal do Deivid, fora do resultado.` : ""} ${lk ? `<a href="${lk}" target="_blank" rel="noopener">Abrir o controle do tanque</a>` : ""}</div>`);
   }
   if (!M.cargas.length) alertas.push(`ℹ <div>Nenhuma carga lançada neste período. O frete de cada caminhão aparece quando as cargas forem lançadas em <a href="#" data-ir="carga">+ Carga</a>.</div>`);
   const cartao = n => {
@@ -1051,6 +1059,9 @@ function tpReceber(rec) {
             </div>
             <div class="actions"><button type="button" class="primary" data-baixar>Gravar baixa</button><span class="status" data-st></span></div>
           </div></details>
+        <details data-env="${esc(cli)}"><summary style="margin-top:8px;cursor:pointer;color:var(--accent);font-weight:600">Resumo para enviar (WhatsApp ou PDF)</summary>
+          <pre class="tp-wa">${esc(tpResumoReceber(cli, cs).texto)}</pre>
+          <div class="actions" style="margin-top:8px"><button type="button" data-copiar>Copiar texto</button><a class="tp-btn-link" href="https://wa.me/?text=${encodeURIComponent(tpResumoReceber(cli, cs).texto)}" target="_blank" rel="noopener">Abrir no WhatsApp</a><button type="button" data-pdf>Baixar PDF</button><span class="status" data-st-env></span></div></details>
         <div class="tbl-wrap" style="margin-top:6px"><table><tbody>${cs.map(c => `<tr><td>${esc(c.id)}</td><td>${fdata(c.data)}</td><td>${esc(c.caminhao)}</td><td class="v">${tpR(c.falta)}</td><td class="v ${c.prazo && c.dias > c.prazo ? "neg" : ""}">${c.dias} d</td></tr>`).join("")}</tbody></table></div></div>`;
     }).join("") || `<div class="panel"><p class="note" style="margin:0">Nenhuma carga em aberto. As cargas lançadas em + Carga aparecem aqui até receberem a baixa.</p></div>`}
     ${tpStatus()}`);
@@ -1077,6 +1088,85 @@ function tpReceber(rec) {
         .catch(e => { st.textContent = "Não gravou: " + e.message; st.className = "status err"; });
     };
   });
+  document.querySelectorAll("#tp-corpo details[data-env]").forEach(det => {
+    const cli = det.dataset.env, r = tpResumoReceber(cli, rec.grupos[cli] || []), st = det.querySelector("[data-st-env]");
+    det.querySelector("[data-copiar]").onclick = () => tpCopiar(r.texto).then(() => { st.textContent = "Texto copiado."; st.className = "status ok"; },
+      () => { st.textContent = "Não copiou: selecione o texto acima e copie."; st.className = "status err"; });
+    det.querySelector("[data-pdf]").onclick = () => { st.textContent = "Gerando o PDF…"; st.className = "status";
+      tpPdfReceber(r).then(() => { st.textContent = "PDF gerado."; st.className = "status ok"; }, e => { st.textContent = "Não gerou o PDF: " + e.message; st.className = "status err"; }); };
+  });
+}
+
+// ---------- resumo das cargas a receber de um cliente, para mandar (WhatsApp e PDF) ----------
+// Uma linha por carga em aberto: data, caminhão, origem → destino, peso × R$/t e quanto falta receber. Para a Rural,
+// acrescenta os recibos de diesel do tanque ainda em aberto. O PDF usa o jsPDF (o mesmo do recibo do tanque), carregado só na hora.
+const tpT = kg => ((kg || 0) / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 2 });
+function tpResumoReceber(cli, cs) {
+  const lista = cs.slice().sort((a, b) => a.data.localeCompare(b.data) || String(a.id).localeCompare(String(b.id)));
+  const fretes = lista.reduce((a, c) => a + c.falta, 0), prazo = (lista[0] || {}).prazo || 0;
+  const vencido = lista.filter(c => prazo && c.dias > prazo).reduce((a, c) => a + c.falta, 0);
+  const diesel = /rural/.test(semAcento(cli)) && TD.tq ? TD.tq.recibosAbertos.slice().sort((a, b) => a.numero - b.numero) : [];
+  const totDiesel = diesel.reduce((a, x) => a + (x.total || 0), 0), total = fretes + totDiesel;
+  const rota = c => [c.origem, c.destino].filter(Boolean).join(" → ") || c.produto || "";
+  const conta = c => c.peso && c.rt ? `${tpT(c.peso)} t × ${tpR(c.rt)}/t = ${tpR(c.frete)}` : tpR(c.frete);
+  let t = `*TR Simões — fretes a receber*\n${cli} · posição em ${fdata(tpHoje())}\n\n`;
+  t += lista.map(c => `${fdata(c.data)} · ${c.caminhao}${rota(c) ? " · " + rota(c) : ""}${c.ticket ? " · " + c.ticket : ""}\n   ${conta(c)}` +
+    (c.recebido > 0.009 ? ` (já recebido ${tpR(c.recebido)}, falta ${tpR(c.falta)})` : "")).join("\n");
+  t += `\n\n*Fretes: ${tpR(fretes)}* (${lista.length} carga${lista.length === 1 ? "" : "s"})`;
+  if (vencido > 0.009) t += `\nPassou do prazo de ${prazo} dias: ${tpR(vencido)}`;
+  if (diesel.length) {
+    t += `\n\n*Diesel do tanque (recibos em aberto)*\n` + diesel.map(x => `Recibo nº ${String(x.numero).padStart(4, "0")} · ${fdata(x.de)} a ${fdata(x.ate)} · ${tpN2(x.litros)} l = ${tpR(x.total)}`).join("\n");
+    t += `\n\n*Total geral: ${tpR(total)}*`;
+  }
+  return { cli, lista, fretes, vencido, prazo, diesel, totDiesel, total, rota, texto: t };
+}
+function tpCopiar(txt) {
+  if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(txt);
+  return new Promise((ok, erro) => { const a = document.createElement("textarea"); a.value = txt; a.style.position = "fixed"; a.style.opacity = "0"; document.body.appendChild(a); a.select();
+    const feito = document.execCommand("copy"); a.remove(); feito ? ok() : erro(new Error("sem permissão")); });
+}
+const tpScript = src => new Promise((ok, erro) => { if (document.querySelector(`script[src="${src}"]`) && window.jspdf) return ok();
+  const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = () => erro(new Error("sem internet para carregar o gerador de PDF")); document.head.appendChild(s); });
+function tpPng(src) {   // o logo é webp: o jsPDF aceita melhor PNG
+  return new Promise(ok => { const i = new Image(); i.onload = () => { const c = document.createElement("canvas"); c.width = i.naturalWidth; c.height = i.naturalHeight;
+    c.getContext("2d").drawImage(i, 0, 0); try { ok(c.toDataURL("image/png")); } catch (e) { ok(null); } }; i.onerror = () => ok(null); i.src = src; });
+}
+async function tpPdfReceber(r) {
+  if (!(window.jspdf && window.jspdf.jsPDF)) await tpScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+  if (!window.jspdf.jsPDF.API.autoTable) await tpScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js");
+  const doc = new window.jspdf.jsPDF({ unit: "mm", format: "a4" }), VERDE = [20, 168, 20], logo = await tpPng(LOGOS.trsimoes);
+  const fim = { fillColor: VERDE, textColor: [0, 0, 0], fontStyle: "bold" }, cab = { fillColor: [0, 0, 0], textColor: [255, 255, 255] };
+  doc.setFillColor(0, 0, 0); doc.rect(0, 0, 210, 32, "F");
+  if (logo) try { doc.addImage(logo, "PNG", 10, 3, 26, 26); } catch (e) { /* sem logo */ }
+  doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.text("Fretes a receber", 42, 14);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.text(`${r.cli}  ·  posição em ${fdata(tpHoje())}`, 42, 22);
+  doc.setFillColor(...VERDE); doc.rect(0, 32, 210, 1.2, "F"); doc.setTextColor(0, 0, 0);
+  doc.autoTable({ startY: 40,
+    head: [["Data", "Caminhão", "Origem > destino", "Peso (t)", "R$/t", "Frete", "A receber", "Dias"]],
+    body: r.lista.map(c => [fdata(c.data), c.caminhao || "", r.rota(c).replace(/→/g, ">") + (c.ticket ? "\n" + c.ticket : ""), c.peso ? tpT(c.peso) : "", c.rt ? tpN2(c.rt) : "", tpN2(c.frete), tpN2(c.falta),
+      { content: String(c.dias), styles: r.prazo && c.dias > r.prazo ? { textColor: [190, 30, 30], fontStyle: "bold" } : {} }]),
+    foot: [[{ content: `${r.lista.length} carga${r.lista.length === 1 ? "" : "s"}`, colSpan: 6 }, { content: tpN2(r.fretes), styles: { halign: "right" } }, ""]],
+    theme: "grid", styles: { fontSize: 8.5, cellPadding: 1.6 }, headStyles: cab, footStyles: fim,
+    columnStyles: { 3: { halign: "right" }, 4: { halign: "right" }, 5: { halign: "right" }, 6: { halign: "right" }, 7: { halign: "right" } }, margin: { left: 12, right: 12 } });
+  let y = doc.lastAutoTable.finalY + 6;
+  if (r.vencido > 0.009) { doc.setFontSize(9.5); doc.setTextColor(190, 30, 30); doc.text(`Passou do prazo de ${r.prazo} dias: R$ ${tpN2(r.vencido)}`, 12, y); doc.setTextColor(0, 0, 0); y += 6; }
+  if (r.diesel.length) {
+    doc.autoTable({ startY: y + 2, head: [["Diesel do tanque: recibo", "Período", "Litros", "R$/l", "Total"]],
+      body: r.diesel.map(x => ["Nº " + String(x.numero).padStart(4, "0") + " · " + fdata(x.data), `${fdata(x.de)} a ${fdata(x.ate)}`, tpN2(x.litros), tpN2(x.preco), tpN2(x.total)]),
+      foot: [[{ content: `${r.diesel.length} recibo${r.diesel.length === 1 ? "" : "s"}`, colSpan: 4 }, { content: tpN2(r.totDiesel), styles: { halign: "right" } }]],
+      theme: "grid", styles: { fontSize: 8.5, cellPadding: 1.6 }, headStyles: cab, footStyles: fim,
+      columnStyles: { 2: { halign: "right" }, 3: { halign: "right" }, 4: { halign: "right" } }, margin: { left: 12, right: 12 } });
+    y = doc.lastAutoTable.finalY + 6;
+  }
+  if (y > 270) { doc.addPage(); y = 20; }
+  doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.text(`Total a receber: R$ ${tpN2(r.total)}`, 198, y + 2, { align: "right" });
+  const nome = `fretes-a-receber-${semAcento(r.cli).replace(/[^a-z0-9]+/g, "-")}-${tpHoje()}.pdf`, blob = doc.output("blob");
+  const arq = typeof File === "function" ? new File([blob], nome, { type: "application/pdf" }) : null;
+  if (arq && navigator.canShare && navigator.canShare({ files: [arq] }) && /android|iphone|ipad/i.test(navigator.userAgent)) {
+    try { await navigator.share({ files: [arq], title: "Fretes a receber" }); return; } catch (e) { if (e.name === "AbortError") return; }
+  }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = nome; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 }
 
 // ---------- Motoristas ----------

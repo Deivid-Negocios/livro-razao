@@ -249,6 +249,8 @@ tr[data-row].on:hover td{background:var(--amber-soft)}
     <form class="panel" id="fAbast" novalidate>
       <label>Data<input type="date" name="data" required></label>
       <label>Caminhão ou equipamento<select name="caminhaoId" required></select></label>
+      <label id="lbProprio" hidden>Nome do carro próprio<input type="text" name="proprioNome" list="dlProprio" maxlength="40" autocomplete="off" placeholder="ex.: Amarok"><span class="hint">Fica na lista para as próximas vezes. Não precisa de motorista; o km é opcional.</span></label>
+      <datalist id="dlProprio"></datalist>
       <label id="lbMot">Motorista<select name="motoristaId"></select></label>
       <label id="lbKm">Hodômetro (km)<input type="number" name="km" inputmode="numeric" min="0" step="1"><span class="hint" id="kmHint"></span></label>
       <label>Litros<input type="number" name="litros" inputmode="decimal" min="0.1" step="0.01" required></label>
@@ -406,9 +408,13 @@ async function gravar(acao,dado){
 }
 function receber(d){
   if(!d.instalado){$("#loading").textContent="O tanque ainda não foi instalado na planilha. Avise o Deivid.";return false}
-  Object.assign(S,{saldo:d.saldo,capacidade:d.capacidade,rural:d.rural,fornecedores:d.fornecedores,hoje:d.hoje,movimentos:d.movimentos});
+  Object.assign(S,{saldo:d.saldo,capacidade:d.capacidade,rural:d.rural,proprio:d.proprio||"Próprio: ",fornecedores:d.fornecedores,hoje:d.hoje,movimentos:d.movimentos});
+  // carros próprios: os nomes já usados nas saídas ("Próprio: Amarok") viram opções da lista
+  const proprios=[...new Set(d.movimentos.filter(m=>m.tipo==="Saída"&&String(m.destino).startsWith(S.proprio)).map(m=>m.destino))].sort();
   S.caminhoes=d.caminhoes.map(c=>({id:c.nome,modelo:c.nome,ident:c.placa||"",kmInicial:c.kmInicial||null,meta:c.meta||null,motorista:c.motorista}))
-    .concat([{id:d.rural,modelo:d.rural,ident:"sem hodômetro",kmInicial:null,meta:null,equip:true}]);
+    .concat([{id:d.rural,modelo:d.rural,ident:"sem hodômetro",kmInicial:null,meta:null,equip:true}])
+    .concat(proprios.map(p=>({id:p,modelo:p.slice(S.proprio.length),ident:"carro próprio",kmInicial:null,meta:null,equip:true,proprio:true})));
+  $("#dlProprio").innerHTML=proprios.map(p=>`<option value="${esc(p.slice(S.proprio.length))}">`).join("");
   S.motoristas=d.motoristas.map(m=>({id:m.nome,nome:m.nome,completo:m.completo,telefone:m.telefone}));
   S.abastecimentos=d.movimentos.filter(m=>m.tipo==="Saída").map(m=>({id:m.id,data:m.data,caminhaoId:m.destino,motoristaId:m.motorista||"",km:Number(m.km)||0,litros:Number(m.litros),
     obs:m.obs,quem:m.quem,reciboNumero:m.recibo||"",reciboId:m.recibo?"n"+m.recibo:""}));
@@ -445,6 +451,8 @@ $("#btnAtualizar").addEventListener("click",()=>carregar().then(()=>toast("Atual
 const byId=(col,id)=>S[col].find(x=>x.id===id);
 const camNome=c=>c?(c.ident?`${c.modelo} (${c.ident})`:c.modelo):"Removido";
 const ehEquip=id=>id===S.rural;
+const NOVO_PROPRIO="__novo_proprio__";
+const ehProprio=id=>id===NOVO_PROPRIO||String(id||"").startsWith(S.proprio);
 function capacidade(){return S.capacidade}
 function estoque(){return S.saldo}
 // Preço médio pelo custo do que está no tanque: cada compra entra pelo valor da nota, cada saída sai pelo médio da hora.
@@ -462,17 +470,21 @@ function custos(){
   return{pm,porMov};
 }
 function precoMedio(){return custos().pm}
-// Calcula km rodados e média de cada abastecimento, caminhão por caminhão
+// Média possível: fora disso o km está errado (digitado errado ou km do cadastro errado) e o trajeto fica fora das médias
+const MEDIA_OK={caminhao:[0.8,5],proprio:[2,25]};
+const mediaPossivel=(camId,m)=>{const[a,b]=MEDIA_OK[ehProprio(camId)?"proprio":"caminhao"];return m>=a&&m<=b};
+// Calcula km rodados e média de cada abastecimento, caminhão por caminhão: (km de agora − km anterior) ÷ litros abastecidos agora.
+// O km anterior é o do abastecimento anterior; no primeiro, o km informado no cadastro (aba TR Caminhões).
 function trechos(){
   const out={};
   S.caminhoes.forEach(c=>{
     const lista=S.abastecimentos.filter(a=>a.caminhaoId===c.id&&a.km>0).sort((a,b)=>Number(a.km)-Number(b.km)||String(a.data).localeCompare(b.data));
-    let prev=c.kmInicial!=null&&c.kmInicial!==""?Number(c.kmInicial):null;
+    let prev=c.kmInicial!=null&&c.kmInicial!==""?Number(c.kmInicial):null,deCadastro=prev!=null;
     lista.forEach(a=>{
       const km=Number(a.km),lt=Number(a.litros);
-      const dist=prev!=null?km-prev:null;
-      out[a.id]={dist:dist!=null&&dist>0?dist:null,media:dist!=null&&dist>0&&lt>0?dist/lt:null};
-      prev=km;
+      const dist=prev!=null&&km-prev>0?km-prev:null,media=dist&&lt>0?dist/lt:null;
+      out[a.id]=media!=null&&!mediaPossivel(c.id,media)?{dist:null,media:null,conferir:{dist,media,deCadastro}}:{dist,media};
+      prev=km;deCadastro=false;
     });
   });
   return out;
@@ -508,7 +520,7 @@ function renderHeader(){
 
 function renderPainel(tr){
   const mes=today().slice(0,7);
-  const caminhoes=S.abastecimentos.filter(a=>!ehEquip(a.caminhaoId));
+  const caminhoes=S.abastecimentos.filter(a=>!ehEquip(a.caminhaoId)&&!ehProprio(a.caminhaoId));
   const doMes=caminhoes.filter(a=>String(a.data).startsWith(mes));
   let dist=0,lt=0;caminhoes.forEach(a=>{const t=tr[a.id];if(t&&t.media){dist+=t.dist;lt+=Number(a.litros)}});
   const pm=precoMedio();
@@ -519,6 +531,7 @@ function renderPainel(tr){
     [fmt(ltMes)+" L","Abastecido neste mês"],
     [fmt(kmMes)+" km","Rodado neste mês"],
     [fmt(S.abastecimentos.filter(a=>ehEquip(a.caminhaoId)&&String(a.data).startsWith(mes)).reduce((s,a)=>s+Number(a.litros),0))+" L","Saída para a Rural no mês"],
+    [fmt(S.abastecimentos.filter(a=>ehProprio(a.caminhaoId)&&String(a.data).startsWith(mes)).reduce((s,a)=>s+Number(a.litros),0))+" L","Carros próprios no mês"],
     [lt?fmt(dist/lt,2)+" km/L":"–","Média geral da frota"],
     [pm?fmtP(pm):"–","Preço médio do litro no tanque"],
     [pm&&lt?fmtR(pm/(dist/lt)):"–","Custo médio por km"]
@@ -536,6 +549,8 @@ function renderPainel(tr){
     const ult=S.abastecimentos.filter(a=>a.caminhaoId===c.id&&tr[a.id]&&tr[a.id].media).sort((a,b)=>Number(b.km)-Number(a.km))[0];
     if(ult&&c.meta&&tr[ult.id].media<Number(c.meta))al.push(`${esc(camNome(c))}: último trajeto fez ${fmt(tr[ult.id].media,2)} km/L, abaixo da média esperada de ${fmt(Number(c.meta),2)}.`);
   });
+  S.abastecimentos.filter(a=>tr[a.id]&&tr[a.id].conferir).forEach(a=>{const x=tr[a.id].conferir;
+    al.push(`${esc(camNome(byId("caminhoes",a.caminhaoId)))}, ${fmtD(a.data)}: ${fmt(x.dist)} km com ${fmt(Number(a.litros),1)} L daria ${fmt(x.media,2)} km/L. ${x.deCadastro?"Confira o km informado no cadastro (aba TR Caminhões)":"Confira o km deste abastecimento e do anterior"}; até lá fica fora das médias.`)});
   $("#alerts").innerHTML=al.map(a=>`<p class="alert">${a}</p>`).join("");
 
   // Por caminhão
@@ -569,31 +584,32 @@ function fillSelect(sel,items,label,emptyText,primeiro="Selecione"){
 
 function renderAbast(tr){
   const f=$("#fAbast");
-  fillSelect(f.caminhaoId,S.caminhoes,camNome,"Nenhum caminhão no cadastro");
+  fillSelect(f.caminhaoId,S.caminhoes.concat([{id:NOVO_PROPRIO,modelo:"+ Outro carro próprio (escrever o nome)"}]),camNome,"Nenhum caminhão no cadastro");
   fillSelect(f.motoristaId,[...S.motoristas].sort((a,b)=>String(a.nome).localeCompare(b.nome)),m=>m.nome,"Nenhum motorista no cadastro");
   updateAbastPreview();
   const lista=[...S.abastecimentos].sort((a,b)=>String(b.data).localeCompare(a.data)||Number(b.km)-Number(a.km));
   table($("#tblAbast"),[{t:"Data"},{t:"Caminhão"},{t:"Motorista"},{t:"Hodômetro",n:1},{t:"Litros",n:1},{t:"Km do trajeto",n:1},{t:"Média",n:1},{t:""}],
     lista.map(a=>{const t=tr[a.id]||{};
       return[fmtD(a.data),esc(camNome(byId("caminhoes",a.caminhaoId))||a.caminhaoId),esc(a.motoristaId||"–"),a.km?fmt(Number(a.km)):"–",fmt(Number(a.litros),1),t.dist?fmt(t.dist):"–",
-        t.media?`<strong>${fmt(t.media,2)}</strong> km/L`:(!a.km?"Sem hodômetro":"<span title='Sem km anterior para comparar'>Primeiro registro</span>"),
+        t.media?`<strong>${fmt(t.media,2)}</strong> km/L`:t.conferir?`<span class="tag bad" title="${fmt(t.conferir.dist)} km com ${fmt(Number(a.litros),1)} L dá ${fmt(t.conferir.media,2)} km/L. ${t.conferir.deCadastro?"Confira o km informado no cadastro (aba TR Caminhões)":"Confira o km deste abastecimento e do anterior"}.">Conferir km</span>`:(!a.km?"Sem hodômetro":"<span title='Sem km anterior para comparar'>Primeiro registro</span>"),
         a.reciboNumero?`<span class="tag good">Recibo nº ${nRec(a.reciboNumero)}</span>`:editBtn("abastecimentos",a.id)+delBtn("abastecimentos",a.id)]}),
     "Nenhum abastecimento lançado ainda.");
 }
 
 function updateAbastPreview(){
   const f=$("#fAbast"),p=$("#abastPreview"),hint=$("#kmHint");
-  const cam=f.caminhaoId.value,equip=ehEquip(cam),km=num(f.km.value),lt=num(f.litros.value);
-  $("#lbKm").hidden=equip;$("#lbMot").hidden=equip;
+  const cam=f.caminhaoId.value,equip=ehEquip(cam),prop=ehProprio(cam),km=num(f.km.value),lt=num(f.litros.value);
+  $("#lbKm").hidden=equip;$("#lbMot").hidden=equip||prop;$("#lbProprio").hidden=cam!==NOVO_PROPRIO;
   if(equip){hint.textContent="";p.classList.remove("show");return}
+  if(cam===NOVO_PROPRIO){hint.textContent="Opcional";p.classList.remove("show");return}
   const c=byId("caminhoes",cam);
   if(c&&c.motorista&&!f.motoristaId.value&&!f.dataset.editId&&S.motoristas.some(m=>m.id===c.motorista))f.motoristaId.value=c.motorista;
   const editId=f.dataset.editId;
   const ult=cam?(editId&&km!=null?kmAnterior(cam,km,editId):ultimoKm(cam)):null;
-  hint.textContent=cam?(ult!=null?`${editId?"Km anterior":"Último registro"}: ${fmt(ult)} km`:"Sem km anterior: este será o ponto de partida"):"";
+  hint.textContent=cam?(prop?"Opcional. ":"")+(ult!=null?`${editId?"Km anterior":"Último registro"}: ${fmt(ult)} km`:prop?"":"Sem km anterior: este será o ponto de partida"):"";
   if(cam&&ult!=null&&km!=null&&lt){
     const d=km-ult;
-    if(d>0){p.innerHTML=`Trajeto de ${fmt(d)} km com ${fmt(lt,1)} L: média de <strong>${fmt(d/lt,2)} km/L</strong>`;p.classList.add("show");return}
+    if(d>0){p.innerHTML=`Trajeto de ${fmt(d)} km com ${fmt(lt,1)} L: média de <strong>${fmt(d/lt,2)} km/L</strong>`+(mediaPossivel(cam,d/lt)?"":`<br><span style="color:var(--bad,#e5484d)">Média impossível: confira o km digitado${S.abastecimentos.some(a=>a.caminhaoId===cam&&a.km>0)?"":" e o km do cadastro do caminhão (aba TR Caminhões)"}.</span>`);p.classList.add("show");return}
   }
   p.classList.remove("show");
 }
@@ -877,22 +893,30 @@ $("#fMedicao").addEventListener("submit",e=>{e.preventDefault();const f=e.target
 const fA=$("#fAbast");
 ["input","change"].forEach(ev=>fA.addEventListener(ev,updateAbastPreview));
 fA.addEventListener("submit",e=>{e.preventDefault();const f=e.target,err=$("#abastErr");
-  const km=num(f.km.value),lt=num(f.litros.value),cam=f.caminhaoId.value,equip=ehEquip(cam);
+  const km=num(f.km.value),lt=num(f.litros.value),equip=ehEquip(f.caminhaoId.value),prop=ehProprio(f.caminhaoId.value);
+  let cam=f.caminhaoId.value;
   if(!f.data.value){err.textContent="Informe a data.";return}
   if(!cam){err.textContent="Escolha o caminhão.";f.caminhaoId.focus();return}
-  if(!equip&&!f.motoristaId.value){err.textContent="Escolha o motorista.";f.motoristaId.focus();return}
-  if(!equip&&(km==null||km<=0)){err.textContent="Informe o km do hodômetro.";f.km.focus();return}
+  if(cam===NOVO_PROPRIO){const nome=f.proprioNome.value.trim().replace(/\s+/g," ");
+    if(nome.length<2){err.textContent="Escreva o nome do carro próprio.";f.proprioNome.focus();return}
+    const c=S.caminhoes.find(x=>!x.proprio&&x.id.toLowerCase()===nome.toLowerCase());
+    if(c){err.textContent=`"${nome}" é um caminhão do cadastro: escolha ele na lista.`;f.proprioNome.focus();return}
+    cam=S.caminhoes.find(x=>x.proprio&&x.modelo.toLowerCase()===nome.toLowerCase())?.id||S.proprio+nome}
+  if(!equip&&!prop&&!f.motoristaId.value){err.textContent="Escolha o motorista.";f.motoristaId.focus();return}
+  if(!equip&&!prop&&(km==null||km<=0)){err.textContent="Informe o km do hodômetro.";f.km.focus();return}
   if(!lt||lt<=0){err.textContent="Informe os litros abastecidos.";f.litros.focus();return}
   const ed=f.dataset.editId;
-  if(!equip){
+  if(prop&&km>0&&!ed){const ult=ultimoKm(cam);if(ult!=null&&km<ult){err.textContent=`O hodômetro precisa ser maior que o último registro deste carro (${fmt(ult)} km).`;f.km.focus();return}}
+  if(!equip&&!prop){
     if(S.abastecimentos.some(a=>a.id!==ed&&a.caminhaoId===cam&&Number(a.km)===km)){err.textContent="Já existe outro abastecimento deste caminhão com esse km.";f.km.focus();return}
     if(!ed){const ult=ultimoKm(cam),temAbast=S.abastecimentos.some(a=>a.caminhaoId===cam&&a.km>0);
       if(ult!=null&&(temAbast?km<=ult:km<ult)){err.textContent=`O hodômetro precisa ser maior que o último registro deste caminhão (${fmt(ult)} km).`;f.km.focus();return}}
   }
-  const ult=equip?null:(ed?kmAnterior(cam,km,ed):ultimoKm(cam));
+  const ult=equip||!(km>0)?null:(ed?kmAnterior(cam,km,ed):ultimoKm(cam));
   const media=ult!=null&&km>ult?(km-ult)/lt:null;
-  salvar({id:ed||undefined,tipo:"Saída",data:f.data.value,destino:cam,motorista:equip?"":f.motoristaId.value,km:equip?0:km,litros:lt,obs:f.obs.value.trim()},
-    (ed?"Abastecimento atualizado":"Abastecimento salvo")+(media?`: média de ${fmt(media,2)} km/L`:""),f,err).then(r=>{if(r&&!ed){f.km.value="";f.litros.value=""}updateAbastPreview()});
+  salvar({id:ed||undefined,tipo:"Saída",data:f.data.value,destino:cam,motorista:equip||prop?"":f.motoristaId.value,km:equip?0:(km||0),litros:lt,obs:f.obs.value.trim()},
+    (ed?"Abastecimento atualizado":"Abastecimento salvo")+(media?`: média de ${fmt(media,2)} km/L`:""),f,err).then(r=>{if(r&&!ed){f.km.value="";f.litros.value="";f.proprioNome.value=""}
+      if(r&&f.caminhaoId.value===NOVO_PROPRIO&&[...f.caminhaoId.options].some(o=>o.value===cam))f.caminhaoId.value=cam;updateAbastPreview()});
 });
 
 document.addEventListener("click",async e=>{
