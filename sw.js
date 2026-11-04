@@ -1,8 +1,8 @@
 // Service worker do Livro Razão. Gerado pelo App_Livro_Razao_montar.py: não editar à mão.
 // Guarda só os arquivos do próprio aplicativo. Chamadas para a API do Apps Script (script.google.com)
 // e qualquer outro endereço passam direto, sem cache.
-const VERSAO = "lr-app-6136687b64";
-const ARQUIVOS = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png", "icon-maskable-512.png"];
+const VERSAO = "lr-app-8d3957ce85";
+const ARQUIVOS = ["./", "index.html", "manifest.webmanifest", "tanque.html", "manifest-tanque.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png", "icon-maskable-512.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(VERSAO).then(c => c.addAll(ARQUIVOS)).then(() => self.skipWaiting()));
@@ -18,11 +18,13 @@ self.addEventListener("fetch", e => {
   const req = e.request, url = new URL(req.url);
   if (req.method !== "GET" || url.origin !== self.location.origin) return;   // API, fontes e o resto: rede, sem cache
   if (req.mode === "navigate") {
-    // Página: primeiro a internet (pega a versão nova), sem internet abre a guardada
+    // Página: primeiro a internet (pega a versão nova), sem internet abre a guardada.
+    // Cada página na sua gaveta: o painel em "./" e a do tanque em "tanque.html".
+    const pagina = url.pathname.endsWith("/tanque.html") ? "tanque.html" : "./";
     e.respondWith(fetch(req).then(r => {
-      if (r.ok) { const copia = r.clone(); caches.open(VERSAO).then(c => c.put("./", copia)); }
+      if (r.ok) { const copia = r.clone(); caches.open(VERSAO).then(c => c.put(pagina, copia)); }
       return r;
-    }).catch(() => caches.match("./")));
+    }).catch(() => caches.match(pagina)));
     return;
   }
   const nome = url.pathname.split("/").pop();

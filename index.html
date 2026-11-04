@@ -580,7 +580,37 @@ const tpLinkAba = k => TD && TD.abas && TD.abas[k] != null && INFO.planilhaUrl ?
 function tpMsg(txt, tipo) { T.msg = txt; T.msgTipo = tipo || ""; const el = $("tp-msg"); if (el) { el.textContent = txt; el.className = "status " + (tipo || ""); } }
 
 function recarregarTransp() {
-  return chamar("transp").then(d => { TD = d; TD_ERRO = ""; }, e => { TD_ERRO = e.message; });
+  return chamar("transp").then(d => { TD = tpPrepararTanque(d); TD_ERRO = ""; }, e => { TD_ERRO = e.message; });
+}
+
+// ---------- tanque de diesel (página tanque.html, do João Victor) ----------
+// O diesel que sai do tanque para um caminhão vira um abastecimento "pago pelo tanque", com o valor pelo preço médio
+// do tanque na hora. Ele entra como despesa do caminhão e serve de base do rateio. As compras dos postos para o tanque
+// (Copasul, Shalon, Posto Diego, sem caminhão, desde o início do tanque) saem das despesas: são estoque, pagas pelo caixa.
+const TP_POSTOS_TANQUE = /copasul|shalon|shalom|diego/;
+const tpLinkTanque = () => typeof DENTRO_DA_PLANILHA !== "undefined" && DENTRO_DA_PLANILHA ? "" : "tanque.html";
+function tpCustosTanque(movs) {   // a mesma conta da página do tanque: preço médio pelo custo do que está no tanque
+  const p1 = movs.find(m => m.tipo === "Entrada" && m.valor), custo = {};
+  let L = 0, V = 0, pm = p1 ? p1.valor / p1.litros : null;
+  movs.forEach(m => {
+    const l = Number(m.litros) || 0;
+    if (m.tipo === "Saldo inicial") { L = l; V = pm ? l * pm : 0; }
+    else if (m.tipo === "Entrada") { V = Math.max(L, 0) * (pm || 0) + (m.valor || (pm ? l * pm : 0)); L = Math.max(L, 0) + l; if (L > 0 && V > 0) pm = V / L; }
+    else if (m.tipo === "Saída") { custo[m.id] = pm; L -= l; V = Math.max(L, 0) * (pm || 0); }
+    else if (m.tipo === "Medição") { custo[m.id] = pm; L = l; V = l * (pm || 0); }
+  });
+  return { pm, custo, saldo: L };
+}
+function tpPrepararTanque(d) {
+  const movs = (d.tanque || []).map((m, i) => ({ m, i })).sort((a, b) => a.m.data < b.m.data ? -1 : a.m.data > b.m.data ? 1 : a.i - b.i).map(x => x.m);
+  const cus = tpCustosTanque(movs);
+  d.tq = { movs, pm: cus.pm, saldo: cus.saldo, inicio: (movs.find(m => m.tipo === "Saldo inicial") || {}).data || "",
+    ruralSemRecibo: movs.filter(m => m.tipo === "Saída" && m.destino === "Empilhadeiras Rural" && !m.recibo),
+    recibosAbertos: (d.recibos || []).filter(r => !r.recebido) };
+  d.abastecimentos = (d.abastecimentos || []).concat(movs.filter(m => m.tipo === "Saída" && m.destino !== "Empilhadeiras Rural").map(m => ({
+    id: m.id, data: m.data, caminhao: m.destino, posto: "Tanque", litros: m.litros, valor: Math.round(m.litros * (cus.custo[m.id] || 0) * 100) / 100,
+    km: m.km, cheio: "Sim", pagoPor: "Tanque", obs: `Saída do tanque ${m.id}${m.motorista ? " · " + m.motorista : ""}`, tanque: true })));
+  return d;
 }
 
 // ---------- modelo: o mês escolhido ----------
@@ -612,10 +642,12 @@ function tpModelo(mes) {
     return c ? c.nome : "";
   };
   const despesas = [];
+  let compraTanque = 0;   // diesel comprado para o tanque: pago pelo caixa, mas é estoque (a despesa sai quando o caminhão abastece)
   LL.forEach(l => {
     if (l.grp !== TP_CC || l.ent || !l.valor || !tpNoMes(l.data, mes)) return;
     const cod = CAT[l.cat]; if (!cod || !C[cod] || C[cod].tipo !== "DESPESA") return;
     const v = l.valor / 100, g = tpGrupo(l.cat);
+    if (g === "diesel" && TD.tq && TD.tq.inicio && l.data >= TD.tq.inicio && (!l.veic || l.veic === "Tanque") && TP_POSTOS_TANQUE.test(semAcento(l.hist + " " + (l.cp || "")))) { compraTanque += v; return; }
     let partes = null, como = "";
     if (l.veic && nomes.includes(l.veic)) { partes = { [l.veic]: v }; como = "coluna Veículo"; }
     else if (l.veic === "FH 400" && nomes.includes("FH 400 2009") && nomes.includes("FH 400 I-Shift")) {
@@ -638,7 +670,7 @@ function tpModelo(mes) {
   // diesel que não passou pelo caixa do Deivid (pago pelo cliente em diesel ou pelo motorista)
   abast.forEach(a => {
     if (semAcento(a.pagoPor) === "deivid" || !a.valor) return;
-    despesas.push({ l: null, linha: null, data: a.data, hist: `Diesel ${a.posto || ""} (pago por ${a.pagoPor})`, cat: "Combustível", g: "diesel", v: a.valor,
+    despesas.push({ l: null, linha: null, data: a.data, hist: a.tanque ? `Diesel do tanque: ${a.obs}` : `Diesel ${a.posto || ""} (pago por ${a.pagoPor})`, cat: "Combustível", g: "diesel", v: a.valor,
       partes: { [a.caminhao]: a.valor }, como: "abastecimento", rateio: false, semCam: false });
   });
   const por = {}; [...nomes, "Geral"].forEach(n => { por[n] = { total: 0, diesel: 0, com: 0, ped: 0, man: 0, fix: 0, out: 0, rateado: 0 }; });
@@ -653,7 +685,7 @@ function tpModelo(mes) {
   const recebidoLR = LL.filter(l => l.grp === TP_CC && l.ent && tpNoMes(l.data, mes) && CAT[l.cat] && C[CAT[l.cat]].tipo === "RECEITA")
     .reduce((a, l) => a + l.valor / 100, 0);
   const baseNome = [...new Set(despesas.filter(d => d.rateio && d.g !== "fix").map(d => d.como.replace("rateio: ", "")))].join(", ") || "partes iguais";
-  return { cams, nomes, cavalos, motoristas, cargas, abast, despesas, por, op, recebidoLR, baseNome };
+  return { cams, nomes, cavalos, motoristas, cargas, abast, despesas, por, op, recebidoLR, baseNome, compraTanque };
 }
 
 // ---------- a receber, km, consumo, acerto (independem do mês) ----------
@@ -759,7 +791,7 @@ function tpResumo(rec, venc) {
   const frete = M.cargas.reduce((a, c) => a + (c.frete || 0), 0), ton = M.cargas.reduce((a, c) => a + (c.peso || 0), 0) / 1000;
   const despLR = M.despesas.filter(d => d.l).reduce((a, d) => a + d.v, 0), despTot = M.despesas.reduce((a, d) => a + d.v, 0);
   const aRec = rec.abertas.reduce((a, c) => a + c.falta, 0);
-  const sobra = M.recebidoLR - despLR;
+  const caixa = despLR + M.compraTanque, sobra = M.recebidoLR - caixa;
   const alertas = [];
   const semCam = M.despesas.filter(d => d.l && d.rateio);
   if (semCam.length) alertas.push(`🧾 <div><b>${semCam.length} despesas sem caminhão</b> (${tpR0(semCam.reduce((a, d) => a + d.v, 0))}) foram rateadas (diesel e pedágio por ${esc(M.baseNome)}; seguro e imposto em partes iguais). <a href="#" data-ir="despesas">Ver as despesas</a></div>`);
@@ -768,6 +800,10 @@ function tpResumo(rec, venc) {
   venc.forEach(v => alertas.push(`🛢 <div><b>${esc(v.quem)}</b>: ${esc(v.doc)} ${v.dias != null ? (v.dias < 0 ? `venceu há ${-v.dias} dias` : `vence em ${v.dias} dias`) : `faltam ${tpN0(v.km)} km`}.</div>`));
   const semPlaca = (TD.caminhoes || []).filter(c => c.nome && !c.placa).length;
   if (semPlaca) alertas.push(`ℹ <div><b>${semPlaca} caminhões sem placa</b> no cadastro. ${tpLinkAba("caminhoes") ? `<a href="${tpLinkAba("caminhoes")}" target="_blank" rel="noopener">Completar na planilha</a>` : ""}</div>`);
+  if (TD.tq && TD.tq.inicio) {
+    const q = TD.tq, rl = q.ruralSemRecibo.reduce((a, m) => a + m.litros, 0), ra = q.recibosAbertos.reduce((a, x) => a + (x.total || 0), 0), lk = tpLinkTanque();
+    alertas.push(`⛽ <div><b>Tanque: ${tpN0(q.saldo)} litros</b>${q.pm ? `, preço médio ${tpR(q.pm)}/l` : ", sem preço (falta o valor da primeira compra)"}.${rl ? ` ${tpN0(rl)} l para as empilhadeiras da Rural ainda sem recibo.` : ""}${ra ? ` Recibos da Rural em aberto: ${tpR0(ra)}.` : ""} ${lk ? `<a href="${lk}" target="_blank" rel="noopener">Abrir o controle do tanque</a>` : ""}</div>`);
+  }
   if (!M.cargas.length) alertas.push(`ℹ <div>Nenhuma carga lançada neste período. O frete de cada caminhão aparece quando as cargas forem lançadas em <a href="#" data-ir="carga">+ Carga</a>.</div>`);
   const cartao = n => {
     const p = M.por[n] || { total: 0 }, o = M.op[n] || { cargas: 0, km: 0, frete: 0, litros: 0 }, cam = M.cams.find(c => c.nome === n) || {};
@@ -786,7 +822,7 @@ function tpResumo(rec, venc) {
     <div class="tp-kpis">
       <div class="kpi"><div class="l">Frete das cargas</div><div class="n">${tpR0(frete)}</div><div class="h">${M.cargas.length} cargas · ${tpN0(ton)} t</div></div>
       <div class="kpi"><div class="l">Recebido (Livro Razão)</div><div class="n">${tpR0(M.recebidoLR)}</div><div class="h">fretes que entraram no caixa</div></div>
-      <div class="kpi"><div class="l">Despesas</div><div class="n">${tpR0(despTot)}</div><div class="h">${tpR0(despLR)} pelo caixa${despTot > despLR ? ` + ${tpR0(despTot - despLR)} de diesel pago pelo cliente` : ""}</div></div>
+      <div class="kpi"><div class="l">Despesas</div><div class="n">${tpR0(despTot)}</div><div class="h">${tpR0(caixa)} pelo caixa${M.compraTanque ? ` (${tpR0(M.compraTanque)} de diesel para o tanque)` : ""}${despTot > despLR ? ` · ${tpR0(despTot - despLR)} de diesel do tanque ou pago pelo cliente` : ""}</div></div>
       <div class="kpi"><div class="l">Sobrou no caixa</div><div class="n ${sobra >= 0 ? "pos" : "neg"}">${tpR0(sobra)}</div><div class="h">recebido − despesas · a receber ${tpR0(aRec)}</div></div>
     </div>
     ${alertas.length ? `<div class="panel"><h2>Precisa da sua atenção</h2>${alertas.map(a => `<div class="tp-alert">${a}</div>`).join("")}</div>` : ""}
@@ -890,6 +926,7 @@ function tpAbastecer() {
     <div class="tp-calc"><div>R$ por litro<b id="ta-rl">—</b></div><div>Km/l do caminhão<b id="ta-kml">—</b></div><div>Km desde o último<b id="ta-kd">—</b></div></div>
     <div class="actions"><button type="submit" class="primary" id="ta-salvar">Gravar abastecimento</button>${tpStatus()}</div>
     <p class="note" style="margin:0">Se quem pagou foi o Deivid, o mesmo toque grava o diesel no Livro Razão (Combustível · Transp. Simões, com o caminhão). Não precisa lançar de novo. Pago pelo cliente em diesel não passa pelo caixa: entra só aqui e conta como despesa do caminhão.</p>
+    <p class="note" style="margin:0"><b>Diesel do tanque da empresa</b> não é lançado aqui: o João Victor lança no controle do tanque${tpLinkTanque() ? ` (<a href="${tpLinkTanque()}" target="_blank" rel="noopener">abrir</a>)` : ""}, e o diesel entra sozinho como despesa do caminhão, pelo preço médio do tanque.</p>
   </form></div>`);
   const calc = () => {
     const l = tpNum($("ta-l").value), v = tpNum($("ta-v").value), k = tpNum($("ta-k").value), ult = tpKmAtual(T.camAb);
@@ -998,6 +1035,9 @@ function tpReceber(rec) {
       <div class="kpi"><div class="l">Recebimentos sem baixa</div><div class="n">${entradas.length}</div><div class="h">entradas da Transp. Simões nos últimos 120 dias</div></div>
       <div class="kpi"><div class="l">Pago em diesel no período</div><div class="n">${tpR0(pago)}</div></div>
     </div>
+    ${TD.tq && (TD.tq.recibosAbertos.length || TD.tq.ruralSemRecibo.length) ? `<div class="tp-item"><div class="tp-item-h"><b>Diesel do tanque para a Rural</b><span class="num" style="font-size:16px">${tpR(TD.tq.recibosAbertos.reduce((a, x) => a + (x.total || 0), 0))}</span></div>
+      <div class="mut" style="font-size:12px">Recibos de venda de combustível em aberto${TD.tq.ruralSemRecibo.length ? ` · mais ${tpN0(TD.tq.ruralSemRecibo.reduce((a, m) => a + m.litros, 0))} l sem recibo (cerca de ${tpR0(TD.tq.ruralSemRecibo.reduce((a, m) => a + m.litros, 0) * (TD.tq.pm || 0))} pelo preço médio)` : ""}. Quando a Rural pagar, preencha "Recebido em" na aba TR Recibos.</div>
+      ${TD.tq.recibosAbertos.length ? `<div class="tbl-wrap" style="margin-top:6px"><table><tbody>${TD.tq.recibosAbertos.map(x => `<tr><td>Nº ${String(x.numero).padStart(4, "0")}</td><td>${fdata(x.data)}</td><td>${esc(x.comprador)}</td><td class="v">${tpN0(x.litros)} l</td><td class="v">${tpR(x.total)}</td><td class="v">${Math.max(0, diasEntre(x.data, tpHoje()))} d</td></tr>`).join("")}</tbody></table></div>` : ""}</div>` : ""}
     ${Object.entries(rec.grupos).sort((a, b) => b[1].reduce((s, c) => s + c.falta, 0) - a[1].reduce((s, c) => s + c.falta, 0)).map(([cli, cs]) => {
       const s = cs.reduce((a, c) => a + c.falta, 0), v = cs.filter(c => c.prazo && c.dias > c.prazo).reduce((a, c) => a + c.falta, 0), prazo = cs[0].prazo;
       return `<div class="tp-item"><div class="tp-item-h"><b>${esc(cli)}</b><span class="num" style="font-size:16px">${tpR(s)}</span></div>
