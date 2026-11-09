@@ -403,6 +403,34 @@ pre.tp-wa { white-space: pre-wrap; font-family: var(--f-ui); font-size: 13px; ba
 
 .tp-btn-link { display: inline-flex; align-items: center; font-weight: 600; font-size: 13px; border: 1px solid var(--line); background: var(--surface); color: var(--accent); border-radius: 8px; padding: 8px 12px; text-decoration: none; }
 <!-- /TRANSP:CSS -->
+<!-- DR:CSS -->
+/* ---------- Sociedade DR (Deivid + Ronei) ---------- */
+#v-dr, #dr-corpo { grid-template-columns: minmax(0, 1fr); min-width: 0; }
+#v-dr > *, #dr-corpo > * { min-width: 0; }
+#v-dr .mut { color: var(--muted); }
+#v-dr .pos { color: var(--cre); } #v-dr .neg { color: var(--deb); }
+.dr-saldo-top { display: grid; justify-items: end; gap: 2px; padding: 8px 12px; border-radius: 10px; background: var(--surface-2); }
+.dr-saldo-top span { font-size: 12px; color: var(--muted); }
+.dr-saldo-top b { font-family: var(--f-num); font-size: 20px; font-weight: 500; }
+.dr-saldo-top.pos b { color: var(--cre); } .dr-saldo-top.neg b { color: var(--deb); }
+.dr-hero { display: grid; gap: 4px; }
+.dr-hero .lbl { font-size: 13px; color: var(--muted); font-weight: 600; }
+.dr-hero .big { font-family: var(--f-num); font-size: clamp(28px, 5vw, 40px); font-weight: 500; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.dr-det { border-top: 1px solid var(--line); padding: 10px 0; }
+.dr-det summary { cursor: pointer; font-size: 14px; font-weight: 600; }
+.dr-det summary .chip { margin-right: 6px; }
+.dr-lista { margin: 8px 0 0; padding-left: 18px; font-size: 13px; display: grid; gap: 4px; }
+.dr-lista li { overflow-wrap: anywhere; }
+.dr-ext td { vertical-align: top; }
+#dr-form .fields { max-width: 680px; }
+#v-dr .tp-kpis .kpi .n { white-space: nowrap; }
+.dr-sub2 button { font-size: 13px; }
+@media (max-width: 560px) {
+  .dr-saldo-top { justify-items: start; width: 100%; }
+  #v-dr .tp-kpis .kpi .n { font-size: clamp(14px, 4.4vw, 20px); }
+  #v-dr .tp-kpis .kpi { padding: 12px; min-width: 0; }
+}
+<!-- /DR:CSS -->
 
 /* ---------- aplicativo instalado (PWA) ---------- */
 /* Tela cheia no iPhone: a capa verde passa por baixo da barra de status e do entalhe; o conteúdo fica fora deles */
@@ -445,6 +473,7 @@ main.wrap { padding-bottom: calc(56px + env(safe-area-inset-bottom)); }
       <button role="tab" data-v="contas" data-m="c" id="tab-contas" aria-selected="false" hidden>Contas</button>
       <button role="tab" data-v="veiculos" data-m="c" aria-selected="false">Veículos</button>
       <button role="tab" data-v="transp" data-m="sc" aria-selected="false"><span class="longo">Transportadora</span><span class="curto">Transp.</span></button>
+      <button role="tab" data-v="dr" data-m="sc" aria-selected="false"><span class="longo">Sociedade DR</span><span class="curto">DR</span></button>
       <button role="tab" data-v="razao" data-m="c" aria-selected="false">Razão</button>
       <button role="tab" data-v="balancete" data-m="c" aria-selected="false">Balancete</button>
       <button role="tab" data-v="plano" data-m="c" aria-selected="false">Plano de contas</button>
@@ -546,6 +575,7 @@ main.wrap { padding-bottom: calc(56px + env(safe-area-inset-bottom)); }
   <section class="view" id="v-contas" hidden></section>
   <section class="view" id="v-veiculos" hidden></section>
   <section class="view" id="v-transp" hidden></section>
+  <section class="view" id="v-dr" hidden></section>
   <section class="view" id="v-razao" hidden></section>
   <section class="view" id="v-balancete" hidden></section>
   <section class="view" id="v-plano" hidden></section>
@@ -1252,6 +1282,805 @@ function tpSimular() {
 }
 </script>
 <!-- /TRANSP:JS -->
+<!-- DR:JS -->
+<script>
+// ================= SOCIEDADE DR (Deivid + Ronei) =================
+// Lê a aba "DR Acerto" pela ação "dr" da API (SociedadeDR.gs) e os lançamentos do centro Estância/Fazenda da aba Lançamentos.
+// Acerto: parte da Conta-corrente Ronei (1.1.05) que o Livro Razão já monta com a coluna "Parte do Ronei", e soma só o que
+// não passou pelo caixa do Deivid (saldo inicial na data de corte, o que o Ronei pagou ou recebeu, ajustes).
+// Sinal: positivo = o Ronei deve ao Deivid. Valores em centavos, como no resto do painel.
+let DRD = null, DRD_ERRO = "";
+const DRS = { sub: "resumo", mes: "", ver: 60, msg: "", msgTipo: "", form: null, opId: "" };
+const DR_SUBS = [["resumo", "Resumo da Estância"], ["acerto", "Acerto com o Ronei"], ["lancar", "+ Lançar no acerto"], ["ronei", "App do Ronei"]];
+const DR_ORIGENS = ["Extrato do Ronei", "App Sociedade DR (Ronei)", "Combinado entre os sócios", "Comprovante"];
+
+function recarregarDR() {
+  return chamar("dr").then(d => { DRD = d; DRD_ERRO = ""; }, e => { DRD = null; DRD_ERRO = e.message; });
+}
+
+// ---------- cálculos (sem tela; testados em testes/testar_dr.js) ----------
+const drTipoDef = nome => (DRD && DRD.tipos || DR_TIPOS_PADRAO).find(t => t.nome === nome) || null;
+const DR_TIPOS_PADRAO = [
+  { nome: "Saldo inicial: Ronei deve ao Deivid", sinal: 1, parte: false, inicial: true },
+  { nome: "Saldo inicial: Deivid deve ao Ronei", sinal: -1, parte: false, inicial: true },
+  { nome: "Ronei pagou (despesa da sociedade)", sinal: -1, parte: true },
+  { nome: "Ronei recebeu (receita da sociedade)", sinal: 1, parte: true },
+  { nome: "Ajuste: a favor do Deivid", sinal: 1, parte: false },
+  { nome: "Ajuste: a favor do Ronei", sinal: -1, parte: false },
+];
+/** Efeito de uma linha da DR Acerto, em centavos (positivo = o Ronei passa a dever mais ao Deivid). */
+function drEfeito(tipos, tipo, valor, parte) {
+  const t = tipos.find(x => x.nome === tipo);
+  if (!t || !(valor > 0)) return 0;
+  return t.sinal * Math.round(valor * (t.parte ? (parte > 0 ? parte : 0.5) : 1));
+}
+const drDias = (a, b) => Math.abs(Math.round((Date.parse(a) - Date.parse(b)) / 864e5));
+
+/**
+ * Extrato do acerto.
+ *   lanc:   linhas do Livro Razão (LL): { id, linha, data, hist, p: [{conta, d, c}], contaNome, valor }
+ *   linhas: linhas da DR Acerto (getDR): { id, linha, data, tipo, hist, valor, parte, situacao, efeito, problema }
+ *   o:      { ronei: "1.1.05", passouPeloRonei: l => bool, ate: "aaaa-mm-dd" | "" , tipos }
+ * Só entra o que é de data >= corte (data do saldo inicial ativo). Sem saldo inicial, soma tudo desde o começo.
+ */
+function drCalcAcerto(lanc, linhas, o) {
+  const tipos = o.tipos || DR_TIPOS_PADRAO, ate = o.ate || "9999-12-31";
+  const ativas = linhas.filter(x => x.situacao !== "Cancelado" && !x.problema);
+  const iniciais = ativas.filter(x => (tipos.find(t => t.nome === x.tipo) || {}).inicial).sort((a, b) => a.data.localeCompare(b.data));
+  const inicial = iniciais[iniciais.length - 1] || null, corte = inicial ? inicial.data : "";
+  const itens = [], avisos = [];
+  if (iniciais.length > 1) avisos.push(`Há ${iniciais.length} saldos iniciais ativos. Vale o mais recente (${inicial.id}); cancele os outros na planilha.`);
+  if (!inicial) avisos.push("Ainda não há saldo inicial. O saldo abaixo soma tudo desde o primeiro lançamento e pode repetir valores já acertados.");
+  let antesN = 0, antesV = 0;
+  lanc.forEach(l => {
+    const ef = l.p.reduce((s, p) => p.conta === o.ronei ? s + p.d - p.c : s, 0);
+    if (!ef || !l.data || l.data > ate) return;
+    if (corte && l.data < corte) { antesN++; antesV += ef; return; }
+    itens.push({ fonte: "LR", ordem: 1, id: l.id, linha: l.linha, data: l.data, hist: l.hist, valor: l.valor, efeito: ef,
+      pelaConta: !!(o.passouPeloRonei && o.passouPeloRonei(l)) });
+  });
+  const reais = c => (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  if (antesN) avisos.push(`${antesN} lançamento(s) do Livro Razão antes da data de corte ficaram de fora (efeito ${reais(antesV)}): devem estar no saldo inicial.`);
+  const drAntes = [];
+  ativas.forEach(x => {
+    if (!x.data || x.data > ate) return;
+    const t = tipos.find(y => y.nome === x.tipo) || {};
+    if (t.inicial && x !== inicial) return;
+    if (corte && x.data < corte) { drAntes.push(x.id); return; }
+    itens.push({ fonte: "DR", ordem: t.inicial ? 0 : 2, id: x.id, linha: x.linha, data: x.data, hist: x.hist, valor: x.valor, efeito: x.efeito,
+      tipo: x.tipo, origem: x.origem, parte: x.parte });
+  });
+  if (drAntes.length) avisos.push(`${drAntes.join(", ")} da aba DR Acerto ${drAntes.length > 1 ? "são" : "é"} de antes da data de corte e ficou de fora: deve estar no saldo inicial (ou cancele na planilha).`);
+  itens.sort((a, b) => a.data.localeCompare(b.data) || a.ordem - b.ordem || (a.linha || 0) - (b.linha || 0));
+  let s = 0; itens.forEach(i => { s += i.efeito; i.saldo = s; });
+  // o mesmo dinheiro nas duas bases: pagamento do Ronei que já está no Livro Razão
+  const lr = itens.filter(i => i.fonte === "LR"), dr = itens.filter(i => i.fonte === "DR" && i.ordem === 2);
+  dr.forEach(x => {
+    const igual = lr.find(l => l.valor === x.valor && drDias(l.data, x.data) <= 3);
+    if (igual) avisos.push(`${x.id} (${x.hist}) tem o mesmo valor de ${igual.id} do Livro Razão (${igual.hist}). Confira se não é o mesmo dinheiro.`);
+    const rep = dr.find(y => y !== x && y.id > x.id && y.tipo === x.tipo && y.valor === x.valor && drDias(y.data, x.data) <= 3);
+    if (rep) avisos.push(`${x.id} e ${rep.id} são iguais (mesmo tipo e valor, datas próximas). Confira se não foi lançado duas vezes.`);
+  });
+  linhas.filter(x => x.situacao !== "Cancelado" && x.problema).forEach(x => avisos.push(`${x.id || "Linha " + x.linha} da aba DR Acerto está com problema (${x.problema}) e ficou de fora.`));
+  return { corte, inicial, itens, saldo: s, avisos,
+    totLR: lr.reduce((t, i) => t + i.efeito, 0), totDR: itens.filter(i => i.fonte === "DR").reduce((t, i) => t + i.efeito, 0) };
+}
+
+/**
+ * Resultado da Estância/Fazenda num período (mes = "aaaa-mm" ou "aaaa" para o ano).
+ *   o: { ronei, centro, tipoDe: cod => "RECEITA"|"DESPESA"|..., ehDinheiro: cod => bool, passouPeloRonei, linhasDR, tipos }
+ * Total da sociedade = parte do Deivid (pernas da categoria) + parte do Ronei (perna 1.1.05) + o que o Ronei pagou/recebeu (DR Acerto).
+ */
+function drCalcEstancia(lanc, mes, o) {
+  const noPer = d => d && d.startsWith(mes);
+  const cats = {}, fora = {};
+  const r = { rec: { deivid: 0, ronei: 0 }, desp: { deivid: 0, ronei: 0 }, n: 0, foraTotal: 0, soDeivid: { n: 0, rec: 0, desp: 0 } };
+  const somaCat = (nome, tipo, deivid, ronei) => {
+    const k = cats[nome] || (cats[nome] = { nome, tipo, deivid: 0, ronei: 0 });
+    k.deivid += deivid; k.ronei += ronei;
+  };
+  lanc.forEach(l => {
+    if (l.grp !== o.centro || !noPer(l.data)) return;
+    const pelo = o.passouPeloRonei(l);
+    const catP = l.p.filter(p => p.conta !== o.ronei && !o.ehDinheiro(p.conta));
+    const ronP = pelo ? [] : l.p.filter(p => p.conta === o.ronei);
+    const tipo = catP.length ? o.tipoDe(catP[0].conta) : "";
+    if (tipo === "RECEITA" || tipo === "DESPESA") {
+      const sg = tipo === "RECEITA" ? -1 : 1;   // receita é crédito; despesa é débito
+      const dv = catP.reduce((s, p) => s + sg * (p.d - p.c), 0), rv = ronP.reduce((s, p) => s + sg * (p.d - p.c), 0);
+      // Parte do Ronei 0% (ou em branco): o Livro Razão trata como gasto só do Deivid, fora da sociedade
+      if (!(l.parte > 0)) { const so = r.soDeivid; so.n++; if (tipo === "RECEITA") so.rec += dv; else so.desp += dv; return; }
+      const alvo = tipo === "RECEITA" ? r.rec : r.desp;
+      alvo.deivid += dv; alvo.ronei += rv; r.n++;
+      somaCat(l.cat || "(sem categoria)", tipo, dv, rv);
+    } else {
+      const nome = l.cat || "(sem categoria)", k = fora[nome] || (fora[nome] = { nome, n: 0, ent: 0, sai: 0 });
+      k.n++; if (l.ent) k.ent += l.valor; else k.sai += l.valor;
+      r.foraTotal++;
+    }
+  });
+  // o que o Ronei pagou ou recebeu fora do caixa do Deivid (aba DR Acerto)
+  const tipos = o.tipos || DR_TIPOS_PADRAO;
+  (o.linhasDR || []).forEach(x => {
+    if (x.situacao === "Cancelado" || x.problema || !noPer(x.data)) return;
+    const t = tipos.find(y => y.nome === x.tipo);
+    if (!t || !t.parte) return;
+    const dv = Math.round(x.valor * x.parte), rv = x.valor - dv;
+    const alvo = t.sinal > 0 ? r.rec : r.desp;   // recebeu = receita; pagou = despesa
+    alvo.deivid += dv; alvo.ronei += rv;
+    somaCat(t.sinal > 0 ? "Recebido pelo Ronei (DR Acerto)" : "Pago pelo Ronei (DR Acerto)", t.sinal > 0 ? "RECEITA" : "DESPESA", dv, rv);
+  });
+  r.cats = Object.values(cats).sort((a, b) => (b.deivid + b.ronei) - (a.deivid + a.ronei));
+  r.fora = Object.values(fora).sort((a, b) => (b.ent + b.sai) - (a.ent + a.sai));
+  r.resultado = { deivid: r.rec.deivid - r.desp.deivid, ronei: r.rec.ronei - r.desp.ronei };
+  return r;
+}
+
+// ---------- tela ----------
+const drR = c => fmt(c || 0);
+const drPassouPeloRonei = l => !!l.contaNome && CONTA_POR_NOME[l.contaNome] === RONEI;
+const drEhDinheiro = cod => ehCaixa(cod) || !!CONTAS[cod] || cod === SEM_CONTA;
+const drTipoConta = cod => (C[cod] || {}).tipo || "";
+const drLinkDR = linha => DRD && DRD.aba != null && INFO.planilhaUrl ? `${INFO.planilhaUrl}#gid=${DRD.aba}&range=A${linha}` : "";
+const drHoje = () => INFO.hoje || new Date().toISOString().slice(0, 10);
+const drQuem = s => s > 0 ? "O Ronei deve ao Deivid" : s < 0 ? "O Deivid deve ao Ronei" : "Sócios quites";
+function drNum(s) {   // "1.234,56" -> 1234.56 ; "1234.56" -> 1234.56
+  s = String(s ?? "").trim().replace(/[R$\s]/g, "");
+  if (!s) return 0;
+  if (s.includes(",")) s = s.replace(/\./g, "").replace(",", ".");
+  else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, "");
+  const n = Number(s); return isFinite(n) ? n : 0;
+}
+function drMsg(txt, tipo) { DRS.msg = txt; DRS.msgTipo = tipo || ""; const el = $("dr-msg"); if (el) { el.textContent = txt; el.className = "status " + (tipo || ""); } }
+const drAcertoAgora = () => drCalcAcerto(LL, DRD ? DRD.linhas : [], { ronei: RONEI, passouPeloRonei: drPassouPeloRonei, tipos: DRD && DRD.tipos });
+
+function vDR() {
+  const el = $("v-dr");
+  if (!DRD) {
+    el.innerHTML = `<div class="panel"><h2>Sociedade DR</h2><div class="tp-alert">⚠ <div><b>A área da Sociedade DR não respondeu.</b><br>${esc(DRD_ERRO || "Ainda lendo…")}<br><br>
+      Se aparecer "Ação desconhecida", falta colar o Codigo.gs versão 7 e o SociedadeDR.gs no Apps Script e criar uma nova versão da implantação.</div></div></div>`;
+    return;
+  }
+  const ac = drAcertoAgora();
+  const badge = { acerto: ac.avisos.length };
+  el.innerHTML = `
+    <div class="tp-top">
+      <div class="tp-marca">${LOGOS.dr ? `<img src="${LOGOS.dr}" alt="">` : ""}<div><b>Sociedade DR</b><span class="mut" style="font-size:12px">Deivid e Ronei · Estância/Fazenda</span></div></div>
+      <div class="dr-saldo-top ${ac.saldo > 0 ? "pos" : ac.saldo < 0 ? "neg" : ""}"><span>${drQuem(ac.saldo)}</span><b class="num">${drR(Math.abs(ac.saldo))}</b></div>
+    </div>
+    <nav class="tp-sub" aria-label="Sociedade DR">${DR_SUBS.map(([k, t]) => `<button type="button" data-s="${k}" aria-pressed="${k === DRS.sub}">${t}${badge[k] ? `<span class="badge">${badge[k]}</span>` : ""}</button>`).join("")}</nav>
+    ${DRD.instalado ? "" : `<div class="tp-alert">⚠ <div><b>A aba DR Acerto ainda não existe na planilha.</b><br>O resumo já funciona. Para lançar no acerto, use na planilha o menu <b>Livro Razão &gt; Sociedade DR: instalar aba</b> e toque em Atualizar.</div></div>`}
+    <div id="dr-corpo" style="display:grid;gap:16px"></div>`;
+  el.querySelectorAll(".tp-sub button").forEach(b => b.onclick = () => { DRS.sub = b.dataset.s; DRS.msg = ""; vDR(); });
+  ({ resumo: drResumo, acerto: drAcerto, lancar: drLancar, ronei: drRonei })[DRS.sub](ac);
+}
+
+function drResumo(ac) {
+  const linhasDR = DRD.linhas || [];
+  const meses = [...new Set([...LL.filter(l => l.grp === DRD.centro).map(l => l.mes), ...linhasDR.map(x => (x.data || "").slice(0, 7))].filter(Boolean))].sort().reverse();
+  const anos = [...new Set(meses.map(m => m.slice(0, 4)))];
+  if (!DRS.mes) { const h = drHoje().slice(0, 7); DRS.mes = meses.find(m => m <= h) || meses[0] || h; }   // último mês com movimento
+  if (!meses.includes(DRS.mes) && !anos.includes(DRS.mes)) meses.unshift(DRS.mes);
+  const r = drCalcEstancia(LL, DRS.mes, { ronei: RONEI, centro: DRD.centro, tipoDe: drTipoConta, ehDinheiro: drEhDinheiro,
+    passouPeloRonei: drPassouPeloRonei, linhasDR, tipos: DRD.tipos });
+  const tot = x => x.deivid + x.ronei;
+  const nomePer = m => m.length === 4 ? "Ano de " + m : MESES[Number(m.slice(5, 7)) - 1] + "/" + m.slice(0, 4);
+  // alertas (todo o período)
+  const est = LL.filter(l => l.grp === DRD.centro);
+  const semParte = (DRD.semParte || []).map(n => L["L" + n]).filter(Boolean).filter(l => ["RECEITA", "DESPESA"].includes(drTipoConta(CAT[l.cat] || "")));
+  const outraParte = est.filter(l => l.parte > 0 && Math.abs(l.parte - 0.5) > 1e-9);
+  const brancos = new Set(semParte.map(l => l.linha));
+  const zero = est.filter(l => !(l.parte > 0) && !brancos.has(l.linha) && ["RECEITA", "DESPESA"].includes(drTipoConta(CAT[l.cat] || ""))).sort((a, b) => b.data.localeCompare(a.data));
+  const pelo = est.filter(drPassouPeloRonei);
+  const lista = (arr, max) => `<ul class="dr-lista">${arr.slice(0, max).map(l => `<li><span class="code">${fdata(l.data)}</span> ${esc(l.hist)} · <span class="num">${drR(l.valor)}</span>${linkLinha(l.linha) ? ` · <a href="${linkLinha(l.linha)}" target="_blank" rel="noopener">linha ${l.linha}</a>` : ""}</li>`).join("")}${arr.length > max ? `<li class="mut">e mais ${arr.length - max}</li>` : ""}</ul>`;
+  $("dr-corpo").innerHTML = `
+    <div class="row-ctrl"><label for="dr-mes" class="mut" style="font-size:13px">Período</label>
+      <select id="dr-mes">${[...anos.map(a => [a, "Ano de " + a]), ...meses.map(m => [m, nomePer(m)])].map(([v, t]) => `<option value="${v}" ${v === DRS.mes ? "selected" : ""}>${t}</option>`).join("")}</select></div>
+    <div class="tp-kpis">
+      <div class="kpi"><div class="l">Receitas da sociedade</div><div class="n pos">${drR(tot(r.rec))}</div><div class="h">Deivid ${drR(r.rec.deivid)} · Ronei ${drR(r.rec.ronei)}</div></div>
+      <div class="kpi"><div class="l">Despesas da sociedade</div><div class="n neg">${drR(tot(r.desp))}</div><div class="h">Deivid ${drR(r.desp.deivid)} · Ronei ${drR(r.desp.ronei)}</div></div>
+      <div class="kpi"><div class="l">Resultado da sociedade</div><div class="n ${tot(r.resultado) >= 0 ? "pos" : "neg"}">${drR(tot(r.resultado))}</div><div class="h">${nomePer(DRS.mes)} · regime de caixa</div></div>
+      <div class="kpi"><div class="l">Parte do Deivid no resultado</div><div class="n ${r.resultado.deivid >= 0 ? "pos" : "neg"}">${drR(r.resultado.deivid)}</div><div class="h">Ronei: ${drR(r.resultado.ronei)}</div></div>
+    </div>
+    <div class="panel"><h2>Por categoria · ${esc(nomePer(DRS.mes))}</h2>
+      ${r.cats.length ? `<div class="tbl-wrap"><table><thead><tr><th>Categoria</th><th class="v">Sociedade</th><th class="v">Deivid</th><th class="v">Ronei</th></tr></thead><tbody>
+        ${r.cats.map(k => `<tr><td>${esc(k.nome)} ${k.tipo === "RECEITA" ? '<span class="chip ok">receita</span>' : ""}</td><td class="v">${drR(k.deivid + k.ronei)}</td><td class="v">${drR(k.deivid)}</td><td class="v">${drR(k.ronei)}</td></tr>`).join("")}
+      </tbody></table></div>` : `<div class="empty">Nenhuma receita ou despesa da Estância neste período.</div>`}
+      ${r.soDeivid.n ? `<p class="note"><b>Só do Deivid</b> (Parte do Ronei 0% ou em branco), fora do resultado da sociedade: ${r.soDeivid.n} lançamento(s) · despesas ${drR(r.soDeivid.desp)}${r.soDeivid.rec ? ` · receitas ${drR(r.soDeivid.rec)}` : ""}. Se algum é da sociedade, corrija a coluna M na planilha.</p>` : ""}
+      ${r.fora.length ? `<p class="note">Fora do resultado (transferências entre os sócios, financiamentos, empréstimos, bens): ${r.fora.map(f => `${esc(f.nome)} (${f.n})`).join(", ")}.</p>` : ""}
+      <p class="note">Compra de gado entra como despesa no mês do pagamento (regime de caixa). Rebanho e custo do gado ficam para a próxima fase.</p>
+    </div>
+    <div class="panel"><h2>Acerto com o Ronei</h2>
+      <div class="row-ctrl" style="justify-content:space-between"><div><b>${drQuem(ac.saldo)}: <span class="num">${drR(Math.abs(ac.saldo))}</span></b><div class="mut" style="font-size:13px">${ac.corte ? "Desde a data de corte " + fdata(ac.corte) : "Sem data de corte"} · ${ac.itens.length} movimento(s)</div></div>
+      <button class="btn" type="button" id="dr-ir-acerto">Ver extrato</button></div>
+    </div>
+    <div class="panel"><h2>Precisa de atenção</h2>
+      ${!semParte.length && !outraParte.length && !pelo.length && !zero.length ? `<div class="empty">Nada a conferir.</div>` : ""}
+      ${semParte.length ? `<details class="dr-det"><summary><span class="chip warn">${semParte.length}</span> Lançamentos da Estância sem a "Parte do Ronei" preenchida</summary>
+        <p class="note">Sem a coluna M, o lançamento conta todo para o Deivid e não entra no acerto. Se é meio a meio, preencha 50% na planilha; se é só do Deivid, preencha 0%.</p>${lista(semParte, 40)}</details>` : ""}
+      ${zero.length ? `<details class="dr-det"><summary><span class="chip warn">${zero.length}</span> Lançamentos da Estância marcados como só do Deivid (0%)</summary>
+        <p class="note">Ficam fora da sociedade e do acerto. Confira os que parecem da sociedade (arrendamento, compra de gado, salários): se forem meio a meio, troque para 50% na planilha.</p>${lista(zero, 40)}</details>` : ""}
+      ${outraParte.length ? `<details class="dr-det"><summary><span class="chip warn">${outraParte.length}</span> Lançamentos com parte do Ronei diferente de 50%</summary>${lista(outraParte, 40)}</details>` : ""}
+      ${pelo.length ? `<details class="dr-det"><summary><span class="chip acc">${pelo.length}</span> Dinheiro que passou pela conta do Ronei ("Com o Ronei")</summary>
+        <p class="note">O valor todo entra no acerto (o Ronei pagou ou recebeu pelo Deivid). Confira se não é despesa da sociedade, que seria só a metade.</p>${lista(pelo, 40)}</details>` : ""}
+    </div>`;
+  $("dr-mes").onchange = () => { DRS.mes = $("dr-mes").value; vDR(); };
+  $("dr-ir-acerto").onclick = () => { DRS.sub = "acerto"; vDR(); };
+}
+
+function drAcerto(ac) {
+  const itens = ac.itens.slice().reverse(), mostra = itens.slice(0, DRS.ver);
+  $("dr-corpo").innerHTML = `
+    <div class="panel dr-hero">
+      <div class="lbl">${drQuem(ac.saldo)}</div>
+      <div class="big num ${ac.saldo > 0 ? "pos" : ac.saldo < 0 ? "neg" : ""}">${drR(Math.abs(ac.saldo))}</div>
+      <div class="mut" style="font-size:13px">${ac.inicial ? `Saldo inicial ${drR(Math.abs(ac.inicial.efeito))} em ${fdata(ac.corte)} (${esc(ac.inicial.tipo.replace("Saldo inicial: ", ""))})` : "Sem saldo inicial"}
+        · Livro Razão ${drR(ac.totLR)} · Aba DR Acerto ${drR(ac.totDR)}</div>
+    </div>
+    ${ac.avisos.map(a => `<div class="tp-alert">⚠ <div>${esc(a)}</div></div>`).join("")}
+    <div class="panel"><h2>Extrato (mais recente primeiro)</h2>
+      ${itens.length ? `<div class="tbl-wrap"><table class="dr-ext"><thead><tr><th>Data</th><th>Origem</th><th>Histórico</th><th class="v">Efeito</th><th class="v">Saldo</th></tr></thead><tbody>
+        ${mostra.map(i => {
+          const link = i.fonte === "LR" ? linkLinha(i.linha) : drLinkDR(i.linha);
+          const orig = i.fonte === "LR" ? `Livro Razão ${link ? `<a href="${link}" target="_blank" rel="noopener">L${i.linha}</a>` : "L" + i.linha}` : `${link ? `<a href="${link}" target="_blank" rel="noopener">${esc(i.id)}</a>` : esc(i.id)} · ${esc(i.origem || "DR Acerto")}`;
+          return `<tr${i.ordem === 0 ? ' class="sint"' : ""}><td class="code">${fdata(i.data)}</td><td style="font-size:12px">${orig}</td>
+            <td>${esc(i.hist)}${i.tipo ? `<div class="mut" style="font-size:12px">${esc(i.tipo)}${i.parte && i.parte !== 1 ? ` · parte do Deivid ${Math.round(i.parte * 100)}% de ${drR(i.valor)}` : ""}</div>` : ""}${i.pelaConta ? ' <span class="chip acc">conta do Ronei</span>' : ""}</td>
+            <td class="v ${i.efeito > 0 ? "pos" : "neg"}">${i.efeito > 0 ? "+" : "−"}${fmtn(Math.abs(i.efeito))}</td><td class="v">${fmtn(i.saldo) || "0,00"}</td></tr>`;
+        }).join("")}
+      </tbody></table></div>${itens.length > mostra.length ? `<div class="row-ctrl" style="margin-top:10px"><button class="btn" type="button" id="dr-mais">Mostrar mais (${itens.length - mostra.length})</button></div>` : ""}`
+      : `<div class="empty">Nenhum movimento no acerto ainda.</div>`}
+      <p class="note">+ aumenta o que o Ronei deve ao Deivid; − aumenta o que o Deivid deve ao Ronei. Do Livro Razão entra a parte do Ronei (coluna "Parte do Ronei") e os pagamentos e aportes entre os dois. Para corrigir uma linha da aba DR Acerto, troque a Situação para Cancelado na planilha e lance de novo.</p>
+    </div>`;
+  const b = $("dr-mais"); if (b) b.onclick = () => { DRS.ver += 100; vDR(); };
+}
+
+function drLancar(ac) {
+  const tipos = DRD.tipos || DR_TIPOS_PADRAO;
+  const f = DRS.form || (DRS.form = { tipo: ac.inicial ? tipos[2].nome : tipos[0].nome, data: drHoje(), valor: "", parte: "0.5", hist: "", origem: "", obs: "" });
+  const def = tipos.find(t => t.nome === f.tipo) || tipos[0];
+  $("dr-corpo").innerHTML = `
+    <form class="panel voucher" id="dr-form" novalidate>
+      <h2 style="margin:0">Lançar no acerto com o Ronei</h2>
+      <p class="note" style="margin:0">Só o que <b>não</b> passou pelo caixa do Deivid. Transferência entre os dois e gasto que o Deivid pagou já estão no Livro Razão: não lance aqui.</p>
+      <div class="fields">
+        <div class="f full"><label for="dr-tipo">O que foi</label><select id="dr-tipo">${tipos.map(t => `<option ${t.nome === f.tipo ? "selected" : ""} ${t.inicial && ac.inicial ? "disabled" : ""}>${esc(t.nome)}</option>`).join("")}</select></div>
+        <div class="f"><label for="dr-data">${def.inicial ? "Data de corte (saldo no começo do dia)" : "Data"}</label><input type="date" id="dr-data" value="${esc(f.data)}"></div>
+        <div class="f"><label for="dr-valor">${def.parte ? "Valor total (R$)" : "Valor (R$)"}</label><input type="text" id="dr-valor" inputmode="decimal" placeholder="0,00" autocomplete="off" value="${esc(f.valor)}"></div>
+        ${def.parte ? `<div class="f"><label for="dr-parte">Parte do Deivid</label><select id="dr-parte">${[["0.5", "Metade (50%)"], ["1", "Tudo do Deivid (100%)"]].map(([v, t]) => `<option value="${v}" ${v === f.parte ? "selected" : ""}>${t}</option>`).join("")}</select></div>` : ""}
+        <div class="f ${def.parte ? "" : "full"}"><label for="dr-origem">De onde veio a informação</label><input type="text" id="dr-origem" list="dr-origens" value="${esc(f.origem)}" placeholder="Ex.: Extrato do Ronei" autocomplete="off"><datalist id="dr-origens">${DR_ORIGENS.map(o => `<option value="${esc(o)}">`).join("")}</datalist></div>
+        <div class="f full"><label for="dr-hist">Histórico</label><input type="text" id="dr-hist" value="${esc(f.hist)}" placeholder="${def.inicial ? "Ex.: Saldo do acerto combinado em 30/11" : "Ex.: Arrendamento Dinei pago pelo Ronei"}" autocomplete="off"></div>
+        <div class="f full"><label for="dr-obs">Observação</label><input type="text" id="dr-obs" value="${esc(f.obs)}" placeholder="Opcional" autocomplete="off"></div>
+      </div>
+      <div class="sug" id="dr-prev"></div>
+      <div id="dr-dups"></div>
+      <div class="actions"><button type="submit" class="primary" id="dr-gravar" ${DRD.instalado ? "" : "disabled"}>Gravar</button><span class="status ${DRS.msgTipo}" id="dr-msg" role="status" aria-live="polite">${esc(DRS.msg)}</span></div>
+      ${def.inicial ? `<p class="note">O saldo inicial é o acerto conferido pelos dois na data de corte. Do Livro Razão, só entra no acerto o que é desta data em diante.</p>` : ""}
+    </form>`;
+  const ler = () => {
+    f.tipo = $("dr-tipo").value; f.data = $("dr-data").value; f.valor = $("dr-valor").value; f.hist = $("dr-hist").value;
+    f.origem = $("dr-origem").value; f.obs = $("dr-obs").value; if ($("dr-parte")) f.parte = $("dr-parte").value;
+  };
+  const prev = () => {
+    ler();
+    const t = tipos.find(x => x.nome === f.tipo) || {}, v = Math.round(drNum(f.valor) * 100);
+    const ef = drEfeito(tipos, f.tipo, v, Number(f.parte));
+    $("dr-prev").innerHTML = v ? (t.inicial ? `Começa o acerto em ${fdata(f.data)} com: <b>${drQuem(ef)} ${drR(Math.abs(ef))}</b>`
+      : `Efeito: <b>${ef > 0 ? "o Ronei passa a dever mais" : "o Deivid passa a dever mais"} ${drR(Math.abs(ef))}</b> · saldo fica <b>${drQuem(ac.saldo + ef)} ${drR(Math.abs(ac.saldo + ef))}</b>`)
+      : "Digite o valor para ver o efeito no acerto.";
+    // o mesmo valor já no Livro Razão (parte do Ronei ou conta do Ronei) em até 3 dias
+    const parecidos = v && t.parte ? ac.itens.filter(i => (i.valor === v || Math.abs(i.efeito) === v) && f.data && drDias(i.data, f.data) <= 3) : [];
+    $("dr-dups").innerHTML = parecidos.length ? `<div class="tp-alert">⚠ <div><b>Parece já estar no acerto:</b> ${parecidos.map(i => `${esc(i.fonte === "LR" ? "L" + i.linha : i.id)} ${fdata(i.data)} ${esc(i.hist)} (${drR(i.valor)})`).join("; ")}. Se for o mesmo dinheiro, não grave.</div></div>` : "";
+    return { t, v, parecidos };
+  };
+  $("dr-tipo").onchange = () => { ler(); DRS.msg = ""; vDR(); };
+  ["dr-data", "dr-valor", "dr-parte", "dr-hist"].forEach(id => { const e = $(id); if (e) e.oninput = e.onchange = prev; });
+  prev();
+  $("dr-form").onsubmit = e => {
+    e.preventDefault();
+    const { t, v, parecidos } = prev();
+    if (!DRD.instalado) return drMsg("Instale a aba DR Acerto na planilha primeiro.", "err");
+    if (!f.data) return drMsg("Escolha a data.", "err");
+    if (!(v > 0)) return drMsg("Digite o valor.", "err");
+    if (!f.hist.trim()) return drMsg("Escreva o histórico.", "err");
+    if (parecidos.length && !confirm("Já existe um movimento com o mesmo valor em data próxima. Gravar mesmo assim?")) return;
+    $("dr-gravar").disabled = true; drMsg("Gravando…");
+    // o mesmo envio repetido (resposta perdida) usa o mesmo opId; se mudou algum campo, é outro envio
+    const dado = { tipo: f.tipo, data: f.data, valor: v, parte: t.parte ? Number(f.parte) : "", hist: f.hist.trim(), origem: f.origem.trim(), obs: f.obs.trim() };
+    const sig = JSON.stringify(dado);
+    if (DRS.opSig !== sig) { DRS.opId = "dr-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8); DRS.opSig = sig; }
+    dado.opId = DRS.opId;
+    chamar("salvarDR", dado)
+      .then(r => recarregarDR().then(() => {
+        DRS.form = null; DRS.opId = ""; DRS.opSig = ""; DRS.msg = `Gravado (${r.id}${r.repetido ? ", já estava gravado" : ""}).`; DRS.msgTipo = "ok"; vDR();
+      }))
+      .catch(err => { drMsg(err.message, "err"); const b = $("dr-gravar"); if (b) b.disabled = false; });
+  };
+}
+
+// ================= SOCIEDADE DR · leitura do backup do app do Ronei =================
+// Só lê: o Deivid escolhe o arquivo .json que o app Sociedade DR exporta em "Dados e backup". Nada vai para a planilha
+// nem para o app do Ronei. O conteúdo fica guardado só neste aparelho (localStorage), sem as fotos dos comprovantes.
+// Os cálculos copiam as regras do app do Ronei 3.7.2 (acertoDR, financeiroDR, apurarDR). Valores em centavos.
+const DRB_CHAVE = "dr-ronei-backup-v1";
+const DRB_MAX_BYTES = 20 * 1024 * 1024;
+let DRB = null, DRB_ERRO = "";
+const DRBS = { aba: "acerto", ver: 40, filtro: "aberto" };
+const DRB_ABAS = [["acerto", "Acerto"], ["contas", "Contas a pagar"], ["arrend", "Arrendamentos"], ["rebanho", "Rebanho"], ["bens", "Bens"], ["conferir", "Conferir com o Livro Razão"]];
+const DRB_SOCIOS = ["Ronei", "Deivid", "Empresa"];
+const DRB_BENS = { terras: "Terras próprias", instalacoes: "Instalações e imóveis", maquinas: "Máquinas e equipamentos", veiculos: "Veículos", semirreboques: "Semirreboques", outros: "Outros bens" };
+
+const DRB_MAX_DOCS = 20000, DRB_MAX_PAG = 500, DRB_MAX_TXT = 500;
+const drbNumOk = v => v !== "" && v != null && (typeof v === "number" || typeof v === "string") && isFinite(Number(v));   // = number() do app do Ronei
+// reais -> centavos, com o mesmo arredondamento do app do Ronei (money); NaN se não for número ou for absurdo
+const drbC = v => { if (!drbNumOk(v)) return NaN; const n = Number(v); return Math.abs(n) > 1e11 ? NaN : Math.round((n + Number.EPSILON) * 100); };
+const drbOkData = d => { if (typeof d !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(d)) return false; const t = new Date(d + "T12:00:00Z"); return isFinite(t.getTime()) && t.toISOString().slice(0, 10) === d; };
+const drbFd = d => drbOkData(d) ? fdata(d) : "—";                   // data do backup na tela: só data válida chega no fdata
+const drbMaisDias = (d, n) => { const t = new Date(d + "T12:00:00Z"); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };
+
+// Campos que o painel usa, por coleção. Tudo o mais do backup é descartado; cada valor entra com o tipo esperado.
+const DRB_CAMPOS = {
+  lanc: { txt: ["descricao", "socio", "categoria", "subcategoria", "tipoCusto", "contaId", "contratoId", "criadoEm"], data: ["data", "dataPagamento"], num: ["valor"], bool: ["pendente"] },
+  mov: { txt: ["tipo", "categoria", "categoriaDestino", "origem", "destino", "fornecedor", "descricao", "criadoEm", "local"], data: ["data"], num: ["quantidade", "valorFinanceiro", "valor", "ordemDia", "custo"], bool: [] },
+  extra: { txt: ["tipo", "descricao", "credor", "natureza", "contratoId", "referencia", "propriedade", "proprietario", "localizacao", "unidade", "periodicidade", "termos", "pagoPor",
+    "categoriaBem", "local", "categoria", "criadoEm", "atualizadoEm"], data: ["data", "vencimento", "inicio", "fim", "dataCadastro"],
+    num: ["principal", "juros", "multa", "valor", "area", "custo", "quantidade"], bool: ["baixado"] },
+};
+function drbLimpar(d, campos, id) {
+  const o = { idDoc: String(id ?? "").slice(0, 200) };
+  campos.txt.forEach(k => { const v = d[k]; if (typeof v === "string") o[k] = v.slice(0, k === "termos" ? 4000 : DRB_MAX_TXT); else if (typeof v === "number" && isFinite(v)) o[k] = String(v); });
+  campos.data.forEach(k => { if (typeof d[k] === "string") o[k] = d[k].slice(0, 30); });
+  campos.num.forEach(k => { const v = d[k]; if (typeof v === "number" || (typeof v === "string" && v.length <= 30)) o[k] = v; else if (v === null) o[k] = null; else if (v !== undefined) o[k] = "inválido"; });
+  campos.bool.forEach(k => { if (Object.prototype.hasOwnProperty.call(d, k)) o[k] = !!d[k]; });   // o app do Ronei também lê como verdadeiro/falso
+  if (Array.isArray(d.pagamentos) && d.pagamentos.length > DRB_MAX_PAG) throw new Error(`Uma conta tem pagamentos demais (${d.pagamentos.length}).`);
+  if (Array.isArray(d.pagamentos)) o.pagamentos = d.pagamentos.filter(p => p && typeof p === "object" && !Array.isArray(p))
+    .map(p => { const q = {}; if (typeof p.data === "string") q.data = p.data.slice(0, 30); ["principal", "juros", "multa"].forEach(k => { const v = p[k]; if (typeof v === "number" || (typeof v === "string" && v.length <= 30)) q[k] = v; else if (v === null) q[k] = null; else if (v !== undefined) q[k] = "inválido"; });
+      if (typeof p.socio === "string") q.socio = p.socio.slice(0, 50); return q; });
+  else if (d.pagamentos != null) o.pagamentos = [];
+  return o;
+}
+const drbNorm = v => String(v ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const drbEf = l => l.dataPagamento || l.data;                       // data efetiva (pagamento) do app do Ronei
+const drbTransf = l => drbNorm((l.categoria || "") + " " + (l.subcategoria || "")).includes("transferencia entre socios");
+const drbIgnora = l => /investimento|\binv_|aquisicao (?:de )?bovinos|financeiro e socios|transferencia entre socios|acerto entre socios/
+  .test(drbNorm([l.tipoCusto, l.categoria, l.subcategoria].join(" ")));
+const drbOrdem = (a, b) => String(a.criadoEm || a.idDoc || "").localeCompare(String(b.criadoEm || b.idDoc || ""));
+
+/** Lê o texto do arquivo de backup e devolve só o que o painel usa (sem anexos). Erro se não for backup do app. */
+function drbLer(texto) {
+  let j;
+  try { j = JSON.parse(texto); } catch (e) { throw new Error("O arquivo não é um JSON válido."); }
+  const p = j && j.payload, col = p && p.collections;
+  if (!j || j.app !== "SociedadeDR" || !col || typeof col !== "object") throw new Error("Este arquivo não é um backup do app Sociedade DR do Ronei.");
+  const brutos = nome => {
+    const arr = Array.isArray(col[nome]) ? col[nome] : [];
+    if (arr.length > DRB_MAX_DOCS) throw new Error(`O backup tem registros demais em ${nome} (${arr.length}).`);
+    return arr.filter(x => x && typeof x === "object" && x.data && typeof x.data === "object" && !Array.isArray(x.data));
+  };
+  const docs = (nome, campos) => brutos(nome).map(x => drbLimpar(x.data, campos, x.id));
+  const lancs = brutos("lancamentos_dr").map(x => { const c = drbLimpar(x.data, DRB_CAMPOS.lanc, x.id); c.temAnexo = !!x.data.anexoData; return c; });
+  const extras = docs("dr_complementos_v2", DRB_CAMPOS.extra), movs = docs("movimentacoes_gado_dr", DRB_CAMPOS.mov);
+  if (!lancs.length && !movs.length && !extras.length) throw new Error("O backup está vazio.");
+  const si = brutos("configuracoes_dr").find(c => c.id === "saldo_inicial");
+  const sd = si ? si.data : null;
+  return {
+    meta: { criadoEm: typeof p.createdAt === "string" ? p.createdAt.slice(0, 40) : "", versao: typeof p.appVersion === "string" ? p.appVersion.slice(0, 20) : "" },
+    lancs, movs, extras,
+    saldoInicial: sd ? { credor: typeof sd.credor === "string" ? sd.credor.slice(0, 20) : "", valor: drbNumOk(sd.valor) ? Number(sd.valor) : 0, data: drbOkData(sd.data) ? sd.data : "" } : null,
+  };
+}
+/** Confere se o backup (lido agora ou guardado no aparelho) roda todos os cálculos sem erro. */
+function drbValido(b, hoje) {
+  if (!b || !b.meta || !Array.isArray(b.lancs) || !Array.isArray(b.movs) || !Array.isArray(b.extras)) return false;
+  try {
+    const a = drbAcerto(b, hoje), f = drbFinanceiro(b, hoje), r = drbRebanho(b, hoje);
+    return [a.saldo, a.valorAberto, f.pagar, f.receber, f.vencido, f.prox30, r.estoque, r.qtd, r.cmv].every(Number.isFinite);
+  } catch (e) { return false; }
+}
+
+/** Acerto dos sócios pela regra do app do Ronei (acertoDR): saldo = inicial + (pago Deivid − pago Ronei) ÷ 2.
+ *  Só lançamentos pagos. Transferência entre sócios conta em dobro para quem pagou. Empresa não gera crédito. +: o Ronei deve. */
+function drbAcerto(b, ate) {
+  const si = b.saldoInicial;
+  const base = si && si.credor === "Deivid" ? drbC(si.valor) : si && si.credor === "Ronei" ? -drbC(si.valor) : 0;
+  const pagos = b.lancs.filter(l => !l.pendente && drbEf(l) && drbEf(l) <= ate && DRB_SOCIOS.includes(l.socio))
+    .sort((a, c) => drbEf(a).localeCompare(drbEf(c)) || drbOrdem(a, c));
+  let ronei = 0, deivid = 0, empresa = 0, transf = 0, invalidos = 0;
+  const linhas = [];
+  pagos.forEach(l => {
+    const v = drbC(l.valor);
+    if (!isFinite(v)) { invalidos++; return; }
+    const t = drbTransf(l), rv = l.socio === "Ronei" ? v : 0, dv = l.socio === "Deivid" ? v : 0;
+    if (l.socio === "Empresa") empresa += v;
+    if (t) transf++;
+    ronei += rv * (t ? 2 : 1); deivid += dv * (t ? 2 : 1);
+    linhas.push({ id: l.idDoc, data: drbEf(l), hist: String(l.descricao || ""), socio: l.socio, transferencia: t, valor: v, saldo: base + Math.round((deivid - ronei) / 2) });
+  });
+  const abertos = b.lancs.filter(l => l.pendente && l.data <= ate);
+  return { base, credorInicial: si ? si.credor : "", dataInicial: si ? si.data : "", ronei, deivid, empresa, transf, invalidos,
+    saldo: base + Math.round((deivid - ronei) / 2), linhas,
+    abertos: abertos.length, valorAberto: abertos.reduce((s, l) => s + (drbC(l.valor) || 0), 0),
+    semMarca: b.lancs.filter(l => !("pendente" in l)).length };
+}
+
+/** Contas a pagar e a receber (financeiroDR). Saldo = principal + juros + multa − pagamentos até a data. */
+function drbFinanceiro(b, ate) {
+  const contratos = b.extras.filter(x => x.tipo === "arrendamento");
+  const dataCadastro = c => {
+    if (drbOkData(c.dataCadastro)) return c.dataCadastro;
+    const st = c.criadoEm || c.atualizadoEm, dt = st ? new Date(st) : null;
+    return dt && isFinite(dt.getTime()) ? [dt.getFullYear(), String(dt.getMonth() + 1).padStart(2, "0"), String(dt.getDate()).padStart(2, "0")].join("-") : "";
+  };
+  const dataObrig = t => {
+    const c = t.contratoId ? contratos.find(x => x.idDoc === t.contratoId) : null;
+    if (!c) return t.data;
+    const d = t.dataCadastro || dataCadastro(c);
+    return drbOkData(d) && d < t.data ? d : t.data;
+  };
+  const r = { pagar: 0, receber: 0, vencido: 0, prox30: 0, itens: [], avisos: [] };
+  const lim30 = (() => { const d = new Date(ate + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + 30); return d.toISOString().slice(0, 10); })();
+  const K = ["principal", "juros", "multa"], valido = v => v == null || (drbNumOk(v) && Number(v) >= 0 && Number.isFinite(drbC(v)));
+  b.extras.filter(x => x.tipo === "titulo").forEach(orig => {
+    const t = Object.assign({}, orig, { data: dataObrig(orig) });
+    if (!(t.data <= ate)) return;
+    const nome = t.descricao || t.credor || t.idDoc;
+    if (!drbOkData(t.data) || !drbOkData(t.vencimento) || !["pagar", "receber"].includes(t.natureza) || K.some(k => !valido(t[k]))) { r.avisos.push("Conta inválida: " + nome); return; }
+    const pago = { principal: 0, juros: 0, multa: 0 }, aceitos = [];
+    (Array.isArray(t.pagamentos) ? t.pagamentos : []).filter(p => p && typeof p.data === "string" && p.data <= ate).forEach(p => {
+      if (!drbOkData(p.data) || p.data < t.data || K.some(k => !valido(p[k]))) { r.avisos.push("Pagamento inválido: " + nome); return; }
+      K.forEach(k => { pago[k] += drbC(p[k] ?? 0); });
+      aceitos.push(p);
+    });
+    const val = k => drbC(t[k] ?? 0);
+    K.forEach(k => { if (pago[k] > val(k)) r.avisos.push("Pagamento maior que o " + k + ": " + nome); });
+    const orig3 = K.reduce((s, k) => s + val(k), 0);
+    const saldo = K.reduce((s, k) => s + Math.max(0, val(k) - pago[k]), 0);
+    const ult = aceitos.slice().sort((a, c) => a.data.localeCompare(c.data)).filter(p => p.socio).pop();
+    const it = { id: t.idDoc, data: t.data, vencimento: t.vencimento, natureza: t.natureza, credor: String(t.credor || ""), descricao: String(t.descricao || ""),
+      original: orig3, pago: pago.principal + pago.juros + pago.multa, saldo, contratoId: t.contratoId || "", referencia: t.referencia || "",
+      vencida: saldo > 0 && t.vencimento < ate, ultimoPag: ult ? ult.socio : "" };
+    r.itens.push(it);
+    if (t.natureza === "receber") { r.receber += saldo; return; }
+    r.pagar += saldo;
+    if (it.vencida) r.vencido += saldo;
+    else if (saldo > 0 && t.vencimento <= lim30) r.prox30 += saldo;
+  });
+  r.itens.sort((a, c) => a.vencimento.localeCompare(c.vencimento) || a.credor.localeCompare(c.credor));
+  return r;
+}
+
+/** Rebanho e custo pela regra do app do Ronei 3.7.2 (apurarDR): estoque a custo médio global; gasto operacional entra no custo do gado. */
+function drbRebanho(b, ate) {
+  const ev = [], avisos = [], grupos = new Map(), vendas = [];
+  [[b.extras.filter(e => e.tipo === "inicial"), "inicial", 0], [b.movs, "mov", 1], [b.lancs, "custo", 2]].forEach(([rows, kind, ord]) => rows.forEach(x => {
+    if (!drbOkData(x.data)) { avisos.push("Data inválida: " + (x.descricao || x.idDoc || kind)); return; }
+    if (x.data <= ate) ev.push(Object.assign({}, x, { kind, ord }));
+  }));
+  const ordemDia = e => e.ordemDia ?? e.ord * 1000000;
+  ev.sort((a, c) => a.data.localeCompare(c.data) || (ordemDia(a) - ordemDia(c)) || drbOrdem(a, c));
+  const key = (l, c) => JSON.stringify([l, c]), get = (l, c) => (grupos.get(key(l, c)) || {}).qtd || 0;
+  const grupo = (l, c, n) => { const k = key(l, c); if (!grupos.has(k)) grupos.set(k, { local: l, categoria: c, qtd: 0 }); grupos.get(k).qtd += n; };
+  let q = 0, valor = 0, cmv = 0, perdas = 0, receita = 0, compra = 0, producao = 0, inicial = 0, cadastro = 0;
+  ev.forEach(e => {
+    const n = Number(e.quantidade), v = drbC(e.valorFinanceiro ?? e.valor ?? 0), ref = e.data + " / " + (e.descricao || e.tipo || e.idDoc);
+    if (e.kind === "custo") {
+      if (drbIgnora(e)) return;
+      if (!isFinite(v) || v < 0) { avisos.push("Valor de gasto inválido: " + ref); return; }
+      if (q > 0) { valor += v; producao += v; } else avisos.push("Gasto sem rebanho na data: " + ref);
+      return;
+    }
+    if (!Number.isInteger(n) || n <= 0) { avisos.push("Quantidade inválida: " + ref); return; }
+    const cat = e.categoria, loc = e.kind === "inicial" ? e.local : e.destino;
+    if (!cat) { avisos.push("Categoria ausente: " + ref); return; }
+    if (e.kind === "inicial" || ["Compra", "Nascimento"].includes(e.tipo)) {
+      const val = e.kind === "inicial" ? drbC(e.custo) : e.tipo === "Nascimento" ? 0 : v;
+      if (!loc || loc === "Externo" || !isFinite(val) || val < 0) { avisos.push("Entrada inválida: " + ref); return; }
+      q += n; valor += val; grupo(loc, cat, n);
+      if (e.kind === "inicial") inicial += val;
+      else if (e.tipo === "Compra") { compra += val; if (drbNorm(e.fornecedor) === "cadastro") cadastro += val; }   // estoque inicial lançado como compra
+    } else if (e.tipo === "Reclassificação") {
+      if (!e.origem || e.destino !== e.origem || !e.categoriaDestino || e.categoriaDestino === cat || String(e.categoriaDestino).includes("|") || n > get(e.origem, cat) || v !== 0) { avisos.push("Reclassificação inválida: " + ref); return; }
+      grupo(e.origem, cat, -n); grupo(e.origem, e.categoriaDestino, n);
+    } else if (["Venda", "Abate", "Morte", "Transferência"].includes(e.tipo)) {
+      if (n > q || n > get(e.origem, cat)) { avisos.push("Saída maior que o estoque do local/categoria: " + ref); return; }
+      if (e.tipo === "Transferência") {
+        if (!e.destino || e.destino === "Externo" || e.destino === e.origem) { avisos.push("Destino de transferência inválido: " + ref); return; }
+        grupo(e.origem, cat, -n); grupo(e.destino, cat, n);
+      } else {
+        if (!isFinite(v) || v < 0) { avisos.push("Receita inválida: " + ref); return; }
+        const saida = n === q ? valor : Math.round(valor / q * n);
+        q -= n; valor -= saida; grupo(e.origem, cat, -n);
+        if (e.tipo === "Morte") perdas += saida;
+        else { receita += v; cmv += saida; vendas.push({ data: e.data, tipo: e.tipo, qtd: n, categoria: cat, receita: v, cmv: saida }); }
+      }
+    } else avisos.push("Operação não reconhecida: " + ref);
+  });
+  const locais = new Map();
+  [...grupos.values()].filter(g => g.qtd > 0).forEach(g => {
+    const l = locais.get(g.local) || { local: g.local, qtd: 0, categorias: [] };
+    l.qtd += g.qtd; l.categorias.push({ categoria: g.categoria, qtd: g.qtd }); locais.set(g.local, l);
+  });
+  return { qtd: q, estoque: valor, medio: q ? Math.round(valor / q) : 0, compra, cadastro, producao, inicial, receita, cmv, perdas, vendas, avisos,
+    locais: [...locais.values()].sort((a, c) => c.qtd - a.qtd || a.local.localeCompare(c.local)) };
+}
+
+/**
+ * Casa os lançamentos do app do Ronei com as linhas da Estância no Livro Razão, por valor (cheio ou metade) e data (até 5 dias).
+ *   lanc: linhas do Livro Razão (LL) já filtradas no centro da Estância: { linha, data, hist, valor (centavos), parte }
+ * Devolve os pares classificados e o que ficou sem par dos dois lados, no período coberto pelo backup.
+ */
+function drbCasar(b, lanc, ate) {
+  const dias = (a, c) => Math.abs(Math.round((Date.parse(a) - Date.parse(c)) / 864e5));
+  const TOL = 5;
+  const ron = b.lancs.filter(l => DRB_SOCIOS.includes(l.socio) && drbOkData(l.data) && l.data <= ate && drbC(l.valor) > 0)
+    .map(l => ({ id: l.idDoc, data: l.data, pag: drbOkData(l.dataPagamento) && l.dataPagamento <= ate ? l.dataPagamento : "", pagoDepois: drbOkData(l.dataPagamento) && l.dataPagamento > ate, hist: String(l.descricao || ""),
+      socio: l.socio, pendente: !!l.pendente, transf: drbTransf(l), valor: drbC(l.valor) }))
+    .sort((a, c) => a.data.localeCompare(c.data) || c.valor - a.valor || a.id.localeCompare(c.id));
+  if (!ron.length) return { ini: "", fim: "", pares: [], soRonei: [], soLR: [], cont: {} };
+  // período coberto pelo backup: da primeira à última data (lançamento ou pagamento), com a folga de 5 dias, sem passar da data pedida
+  const datas = ron.flatMap(r => r.pag ? [r.data, r.pag] : [r.data]).sort();
+  const ini = drbMaisDias(datas[0], -TOL), fimB = drbMaisDias(datas[datas.length - 1], TOL), fim = fimB < ate ? fimB : ate;
+  const lr = lanc.filter(l => l.data && l.data >= ini && l.data <= fim && l.valor > 0).sort((a, c) => a.data.localeCompare(c.data) || a.linha - c.linha);
+  const usados = new Set(), pares = [], soRonei = [];
+  const dist = (r, l) => Math.min(dias(r.data, l.data), r.pag ? dias(r.pag, l.data) : 99);
+  // primeiro os pares de valor cheio, depois os de metade: assim um valor cheio não "rouba" a linha de outro.
+  // Em cada lançamento do Ronei fica a linha mais próxima ainda livre (empate: a de número menor). É sugestão, não prova.
+  [["cheio", r => [r.valor]], ["metade", r => [Math.floor(r.valor / 2), Math.ceil(r.valor / 2)]]].forEach(([modo, alvo]) => {
+    ron.forEach(r => {
+      if (r.par) return;
+      const vs = alvo(r);
+      let melhor = null, md = TOL + 1;
+      lr.forEach(l => { if (usados.has(l.linha) || !vs.includes(l.valor)) return; const d = dist(r, l); if (d < md) { md = d; melhor = l; } });
+      if (melhor) { usados.add(melhor.linha); r.par = { l: melhor, modo }; }
+    });
+  });
+  // "Batem" só quando o efeito no acerto é o mesmo nas duas bases: o Deivid pagou, está pago, não é entre sócios,
+  // e o Livro Razão tem o valor cheio como saída com 50% para o Ronei. O resto vai para conferir à mão.
+  const cont = { ok: 0, metade0: 0, cheio0: 0, metade50: 0, roneiMetade: 0, outro: 0 };
+  ron.forEach(r => {
+    if (!r.par) { soRonei.push(r); return; }
+    const l = r.par.l, p = Number(l.parte) || 0, cheio = r.par.modo === "cheio";
+    let cls = "outro";
+    if (!l.ent && !r.transf && !r.pendente && !r.pagoDepois) {
+      if (r.socio === "Deivid") {
+        if (cheio) cls = Math.abs(p - 0.5) < 1e-9 ? "ok" : p > 0 ? "outro" : "cheio0";
+        else cls = p > 0 ? "metade50" : "metade0";
+      } else if (r.socio === "Ronei" && !cheio) cls = "roneiMetade";
+    }
+    const motivo = cls !== "outro" ? "" : r.socio === "Empresa" ? "pago pela Empresa" : r.pendente || r.pagoDepois ? "ainda em aberto no app do Ronei" : r.transf ? "transferência entre sócios"
+      : l.ent ? "no Livro Razão é entrada" : r.socio === "Ronei" ? "pago pelo Ronei, valor cheio no Livro Razão" : `parte do Ronei ${Math.round(p * 100)}% no Livro Razão`;
+    cont[cls]++;
+    pares.push({ r, l, cls, motivo });
+  });
+  const soLR = lr.filter(l => !usados.has(l.linha));
+  return { ini, fim, pares, soRonei, soLR, cont };
+}
+
+// ---------- guardar neste aparelho ----------
+// O que fica guardado passa pela mesma limpeza da importação ao ser lido de novo.
+function drbRelimpar(s) {
+  if (!s || typeof s !== "object" || !Array.isArray(s.lancs) || !Array.isArray(s.movs) || !Array.isArray(s.extras)) return null;
+  if (s.lancs.length > DRB_MAX_DOCS || s.movs.length > DRB_MAX_DOCS || s.extras.length > DRB_MAX_DOCS) return null;
+  const ok = x => x && typeof x === "object" && !Array.isArray(x);
+  const si = ok(s.saldoInicial) ? s.saldoInicial : null, m = ok(s.meta) ? s.meta : {};
+  return {
+    meta: { criadoEm: typeof m.criadoEm === "string" ? m.criadoEm.slice(0, 40) : "", versao: typeof m.versao === "string" ? m.versao.slice(0, 20) : "" },
+    lancs: s.lancs.filter(ok).map(l => Object.assign(drbLimpar(l, DRB_CAMPOS.lanc, l.idDoc), { temAnexo: l.temAnexo === true })),
+    movs: s.movs.filter(ok).map(x => drbLimpar(x, DRB_CAMPOS.mov, x.idDoc)),
+    extras: s.extras.filter(ok).map(x => drbLimpar(x, DRB_CAMPOS.extra, x.idDoc)),
+    saldoInicial: si ? { credor: typeof si.credor === "string" ? si.credor.slice(0, 20) : "", valor: drbNumOk(si.valor) ? Number(si.valor) : 0, data: drbOkData(si.data) ? si.data : "" } : null,
+  };
+}
+function drbCarregarLocal() {
+  let s = null;
+  try { const t = localStorage.getItem(DRB_CHAVE); s = t ? JSON.parse(t) : null; } catch (e) { s = null; }
+  const b = s ? drbRelimpar(s) : null;
+  if (b && drbValido(b, new Date().toISOString().slice(0, 10))) { DRB = b; return; }
+  DRB = null;
+  if (s) { DRB_ERRO = "O backup guardado neste aparelho estava com problema e foi descartado. Escolha o arquivo de novo."; try { localStorage.removeItem(DRB_CHAVE); } catch (e) { /* nada a fazer */ } }
+}
+/** Guarda o backup. Se não couber, apaga o anterior para ele não voltar no lugar do novo. */
+function drbGuardarLocal(b) {
+  try { localStorage.setItem(DRB_CHAVE, JSON.stringify(b)); return "ok"; }
+  catch (e) { try { localStorage.removeItem(DRB_CHAVE); return "nao-coube"; } catch (e2) { return "antigo-ficou"; } }
+}
+function drbEsquecer() {
+  DRB = null;
+  try { localStorage.removeItem(DRB_CHAVE); return true; } catch (e) { return false; }
+}
+if (typeof localStorage !== "undefined") drbCarregarLocal();
+
+// ---------- tela ----------
+const drbQuando = iso => { const d = new Date(iso); return isFinite(d.getTime()) ? d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "data desconhecida"; };
+const drbDetalhe = (n, chip, titulo, corpo) => n ? `<details class="dr-det"><summary><span class="chip ${chip}">${n}</span> ${titulo}</summary>${corpo}</details>` : "";
+const drbTabela = (cab, linhas) => `<div class="tbl-wrap"><table class="dr-ext"><thead><tr>${cab.map(c => c[0] === ">" ? `<th class="v">${c.slice(1)}</th>` : `<th>${c}</th>`).join("")}</tr></thead><tbody>${linhas.join("")}</tbody></table></div>`;
+
+function drRonei(ac) {
+  const hoje = drHoje();
+  const topo = `
+    <div class="panel"><h2>Backup do app do Ronei</h2>
+      ${DRB ? `<p style="margin:0"><b>Backup de ${esc(drbQuando(DRB.meta.criadoEm))}</b> <span class="mut" style="font-size:13px">· ${DRB.lancs.length} lançamentos · ${DRB.movs.length} movimentos do rebanho · ${DRB.extras.filter(x => x.tipo === "titulo").length} contas</span></p>`
+        : `<p style="margin:0">Nenhum backup aberto. No app do Ronei, em <b>Dados e backup</b>, use "Exportar backup" e mande o arquivo .json para o Deivid. Depois escolha o arquivo aqui.</p>`}
+      <div class="row-ctrl" style="margin-top:10px;gap:8px;flex-wrap:wrap">
+        <label class="btn" for="drb-arq" style="cursor:pointer">${DRB ? "Trocar arquivo" : "Escolher arquivo .json"}</label>
+        <input type="file" id="drb-arq" accept=".json,application/json" hidden>
+        ${DRB ? `<button class="btn" type="button" id="drb-esquecer">Esquecer este backup</button>` : ""}
+        <span class="status ${DRB_ERRO ? "err" : ""}" id="drb-msg" role="status" aria-live="polite">${esc(DRB_ERRO)}</span>
+      </div>
+      <p class="note">Só leitura: nada é gravado na planilha nem no app do Ronei. O backup fica guardado só neste aparelho, sem as fotos dos comprovantes. As contas seguem as regras do app do Ronei (versão 3.7.2).</p>
+    </div>`;
+  if (!DRB) { $("dr-corpo").innerHTML = topo; drbLigarTopo(); return; }
+  $("dr-corpo").innerHTML = topo + `
+    <nav class="tp-sub dr-sub2" aria-label="Partes do backup">${DRB_ABAS.map(([k, t]) => `<button type="button" data-b="${k}" aria-pressed="${k === DRBS.aba}">${t}</button>`).join("")}</nav>
+    <div id="drb-corpo" style="display:grid;gap:16px"></div>`;
+  drbLigarTopo();
+  $("dr-corpo").querySelectorAll(".dr-sub2 button").forEach(bt => bt.onclick = () => { DRBS.aba = bt.dataset.b; DRBS.ver = 40; vDR(); });
+  ({ acerto: drbVerAcerto, contas: drbVerContas, arrend: drbVerArrend, rebanho: drbVerRebanho, bens: drbVerBens, conferir: drbVerConferir })[DRBS.aba](ac, hoje);
+}
+
+function drbLigarTopo() {
+  const inp = $("drb-arq"), esq = $("drb-esquecer");
+  if (inp) inp.onchange = () => {
+    const f = inp.files && inp.files[0];
+    if (!f) return;
+    if (f.size > DRB_MAX_BYTES) { DRB_ERRO = "Arquivo grande demais para um backup do app (mais de 20 MB)."; vDR(); return; }
+    $("drb-msg").textContent = "Lendo…";
+    f.text().then(t => {
+      const b = drbLer(t);
+      if (!drbValido(b, drHoje())) throw new Error("O backup tem dados que o painel não consegue calcular. Peça um backup novo ao Ronei.");
+      DRB = b; DRB_ERRO = ""; DRBS.aba = "acerto";   // só troca o backup depois de conferido
+      const g = drbGuardarLocal(b);
+      if (g === "nao-coube") DRB_ERRO = "Aberto, mas não coube na memória deste aparelho: ao fechar o painel, ele some e é preciso escolher o arquivo de novo.";
+      if (g === "antigo-ficou") DRB_ERRO = "Aberto, mas não deu para guardar: ao abrir o painel de novo, pode voltar o backup anterior. Confira a data do backup no topo.";
+      vDR();
+    }).catch(e => { DRB_ERRO = e.message || "Não consegui ler o arquivo."; vDR(); });
+  };
+  if (esq) esq.onclick = () => {
+    if (!confirm("Tirar o backup do Ronei deste aparelho? O arquivo original não é apagado.")) return;
+    DRB_ERRO = drbEsquecer() ? "" : "Saiu da tela, mas não consegui apagar do aparelho: ele pode voltar ao abrir o painel de novo.";
+    vDR();
+  };
+}
+
+function drbVerAcerto(ac, hoje) {
+  const a = drbAcerto(DRB, hoje), dif = a.saldo - ac.saldo;
+  const linhas = a.linhas.slice().reverse(), mostra = linhas.slice(0, DRBS.ver);
+  const av = [];
+  if (a.base && !a.dataInicial) av.push(`O saldo inicial de ${drR(Math.abs(a.base))} (a favor do ${esc(a.credorInicial)}) não tem data no app do Ronei. Sem a data, não dá para saber a partir de quando somar.`);
+  if (a.semMarca) av.push(`${a.semMarca} lançamento(s) sem a marcação de pago ou em aberto: o app do Ronei conta como pagos.`);
+  if (a.abertos) av.push(`${a.abertos} lançamento(s) em aberto (${drR(a.valorAberto)}) ainda não entram no acerto do Ronei.`);
+  if (a.invalidos) av.push(`${a.invalidos} lançamento(s) com valor inválido ficaram de fora.`);
+  $("drb-corpo").innerHTML = `
+    <div class="tp-kpis">
+      <div class="kpi"><div class="l">Pelo app do Ronei</div><div class="n ${a.saldo > 0 ? "pos" : a.saldo < 0 ? "neg" : ""}">${drR(Math.abs(a.saldo))}</div><div class="h">${drQuem(a.saldo)}</div></div>
+      <div class="kpi"><div class="l">Pelo Livro Razão</div><div class="n ${ac.saldo > 0 ? "pos" : ac.saldo < 0 ? "neg" : ""}">${drR(Math.abs(ac.saldo))}</div><div class="h">${drQuem(ac.saldo)}</div></div>
+      <div class="kpi"><div class="l">Diferença</div><div class="n">${drR(Math.abs(dif))}</div><div class="h">${dif === 0 ? "As duas bases batem" : dif > 0 ? "O app do Ronei dá mais a favor do Deivid" : "O Livro Razão dá mais a favor do Deivid"}</div></div>
+    </div>
+    ${av.map(x => `<div class="tp-alert">⚠ <div>${x}</div></div>`).join("")}
+    <div class="panel"><h2>Como o app do Ronei chega no saldo</h2>
+      ${drbTabela(["Parte", ">Valor"], [
+        `<tr><td>Saldo inicial ${a.credorInicial ? `(a favor do ${esc(a.credorInicial)}${a.dataInicial ? ", em " + drbFd(a.dataInicial) : ", sem data"})` : ""}</td><td class="v">${drR(a.base)}</td></tr>`,
+        `<tr><td>Pago pelo Deivid${a.transf ? " (transferência entre sócios conta em dobro)" : ""}</td><td class="v">${drR(a.deivid)}</td></tr>`,
+        `<tr><td>Pago pelo Ronei</td><td class="v">${drR(a.ronei)}</td></tr>`,
+        `<tr><td>(Deivid − Ronei) ÷ 2</td><td class="v">${drR(a.saldo - a.base)}</td></tr>`,
+        `<tr class="sint"><td><b>${drQuem(a.saldo)}</b></td><td class="v"><b>${drR(Math.abs(a.saldo))}</b></td></tr>`,
+        `<tr><td class="mut">Pago pela Empresa (não gera crédito para ninguém)</td><td class="v mut">${drR(a.empresa)}</td></tr>`])}
+      <p class="note">As duas contas usam regras diferentes: o Livro Razão soma a "Parte do Ronei" de cada lançamento, desde a data de corte. Para achar de onde vem a diferença, veja "Conferir com o Livro Razão".</p>
+    </div>
+    <div class="panel"><h2>Extrato pelo app do Ronei (mais recente primeiro)</h2>
+      ${linhas.length ? drbTabela(["Data", "Histórico", "Quem pagou", ">Valor", ">Saldo"], mostra.map(l => `<tr><td class="code">${drbFd(l.data)}</td><td>${esc(l.hist)}${l.transferencia ? ' <span class="chip acc">entre sócios</span>' : ""}</td><td>${esc(l.socio)}</td><td class="v">${fmtn(l.valor)}</td><td class="v">${fmtn(l.saldo) || "0,00"}</td></tr>`))
+        + (linhas.length > mostra.length ? `<div class="row-ctrl" style="margin-top:10px"><button class="btn" type="button" id="drb-mais">Mostrar mais (${linhas.length - mostra.length})</button></div>` : "")
+        : `<div class="empty">Nenhum lançamento pago no backup.</div>`}
+    </div>`;
+  const m = $("drb-mais"); if (m) m.onclick = () => { DRBS.ver += 100; vDR(); };
+}
+
+function drbVerContas(ac, hoje) {
+  const f = drbFinanceiro(DRB, hoje);
+  const filtros = [["aberto", "Em aberto"], ["vencidas", "Vencidas"], ["30", "Próximos 30 dias"], ["todas", "Todas (com as quitadas)"]];
+  const lim = (() => { const d = new Date(hoje + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + 30); return d.toISOString().slice(0, 10); })();
+  const its = f.itens.filter(t => DRBS.filtro === "todas" ? true : DRBS.filtro === "vencidas" ? t.vencida : DRBS.filtro === "30" ? t.saldo > 0 && !t.vencida && t.vencimento <= lim : t.saldo > 0);
+  const totPagar = its.filter(t => t.natureza === "pagar").reduce((s, t) => s + t.saldo, 0), totReceber = its.filter(t => t.natureza === "receber").reduce((s, t) => s + t.saldo, 0);
+  $("drb-corpo").innerHTML = `
+    <div class="tp-kpis">
+      <div class="kpi"><div class="l">A pagar (saldo)</div><div class="n neg">${drR(f.pagar)}</div><div class="h">principal, juros e multa que faltam</div></div>
+      <div class="kpi"><div class="l">A pagar vencido</div><div class="n ${f.vencido ? "neg" : ""}">${drR(f.vencido)}</div><div class="h">vencimento antes de hoje</div></div>
+      <div class="kpi"><div class="l">A pagar nos próximos 30 dias</div><div class="n">${drR(f.prox30)}</div><div class="h">até ${drbFd(lim)}</div></div>
+      <div class="kpi"><div class="l">A receber</div><div class="n pos">${drR(f.receber)}</div><div class="h">fora da soma a pagar</div></div>
+    </div>
+    ${f.avisos.map(x => `<div class="tp-alert">⚠ <div>${esc(x)}</div></div>`).join("")}
+    <div class="panel"><h2>Contas e financiamentos</h2>
+      <div class="row-ctrl"><label for="drb-filtro" class="mut" style="font-size:13px">Mostrar</label>
+        <select id="drb-filtro">${filtros.map(([v, t]) => `<option value="${v}" ${v === DRBS.filtro ? "selected" : ""}>${t}</option>`).join("")}</select>
+        <span class="mut" style="font-size:13px">${its.length} conta(s) · a pagar ${drR(totPagar)}${totReceber ? " · a receber " + drR(totReceber) : ""}</span></div>
+      ${its.length ? drbTabela(["Vencimento", "Credor / descrição", ">Valor", ">Pago", ">Falta"], its.map(t => `<tr><td class="code">${drbFd(t.vencimento)}${t.vencida ? ' <span class="chip warn">vencida</span>' : ""}</td>
+          <td>${esc(t.credor)}${t.natureza === "receber" ? ' <span class="chip ok">a receber</span>' : ""}<div class="mut" style="font-size:12px">${esc(t.descricao)}${t.ultimoPag ? " · último pagamento: " + esc(t.ultimoPag) : ""}</div></td>
+          <td class="v">${fmtn(t.original)}</td><td class="v">${fmtn(t.pago) || "0,00"}</td><td class="v"><b>${fmtn(t.saldo) || "0,00"}</b></td></tr>`))
+        : `<div class="empty">Nenhuma conta neste filtro.</div>`}
+      <p class="note">Financiamentos e compras a prazo cadastrados no app do Ronei. O pagamento de uma conta não entra sozinho no acerto: no app do Ronei só entra o que foi lançado em Lançamentos.</p>
+    </div>`;
+  $("drb-filtro").onchange = () => { DRBS.filtro = $("drb-filtro").value; vDR(); };
+}
+
+function drbVerArrend(ac, hoje) {
+  const cs = DRB.extras.filter(x => x.tipo === "arrendamento"), f = drbFinanceiro(DRB, hoje);   // parcelas cadastradas até hoje, com os pagamentos até hoje
+  const avisos = f.avisos.map(x => `<div class="tp-alert">⚠ <div>Conta com problema no backup (não aparece nas parcelas): ${esc(x)}</div></div>`).join("");
+  $("drb-corpo").innerHTML = avisos + (cs.length ? cs.map(c => {
+    const parc = f.itens.filter(t => t.contratoId === c.idDoc);
+    return `<div class="panel"><h2>${esc(c.propriedade || c.localizacao || "Arrendamento")}</h2>
+      <p style="margin:0">${esc(c.proprietario || "")}${c.localizacao ? " · " + esc(c.localizacao) : ""} · ${esc(String(c.area ?? ""))} ${esc(c.unidade || "")}</p>
+      <p class="mut" style="margin:4px 0 0;font-size:13px">De ${drbFd(c.inicio)} a ${drbFd(c.fim)} · ${esc(({ mensal: "mensal", trimestral: "trimestral", semestral: "semestral", anual: "anual", unica: "parcela única" })[c.periodicidade] || c.periodicidade || "")} · valor ${drR(drbC(c.valor) || 0)}${c.pagoPor ? " · pago por " + esc(c.pagoPor) : ""}</p>
+      ${c.termos ? `<p class="note">${esc(c.termos)}</p>` : ""}
+      ${parc.length ? drbTabela(["Vencimento", "Parcela", ">Valor", ">Falta"], parc.map(t => `<tr><td class="code">${drbFd(t.vencimento)}</td><td>${esc(t.descricao)}${t.ultimoPag ? `<div class="mut" style="font-size:12px">pago por ${esc(t.ultimoPag)}</div>` : ""}</td><td class="v">${fmtn(t.original)}</td><td class="v">${fmtn(t.saldo) || "0,00"}</td></tr>`))
+        : `<p class="note">Nenhuma parcela gerada no Financeiro.</p>`}
+    </div>`;
+  }).join("") : `<div class="panel"><div class="empty">Nenhum arrendamento no backup.</div></div>`);
+}
+
+function drbVerRebanho(ac, hoje) {
+  const r = drbRebanho(DRB, hoje);
+  $("drb-corpo").innerHTML = `
+    ${r.avisos.length ? `<div class="tp-alert">⚠ <div>O cálculo do rebanho tem ${r.avisos.length} aviso(s) (lista no fim da página): os números podem estar incompletos, como no app do Ronei.</div></div>` : ""}
+    <div class="tp-kpis">
+      <div class="kpi"><div class="l">Cabeças</div><div class="n">${r.qtd.toLocaleString("pt-BR")}</div><div class="h">${r.locais.length} local(is)</div></div>
+      <div class="kpi"><div class="l">Estoque a custo</div><div class="n">${drR(r.estoque)}</div><div class="h">compra + gastos que entram no custo</div></div>
+      <div class="kpi"><div class="l">Custo médio por cabeça</div><div class="n">${drR(r.medio)}</div><div class="h">custo médio global</div></div>
+      <div class="kpi"><div class="l">Vendas</div><div class="n pos">${drR(r.receita)}</div><div class="h">custo das vendidas ${drR(r.cmv)}</div></div>
+    </div>
+    <div class="panel"><h2>Onde estão os animais</h2>
+      ${r.locais.length ? r.locais.map(l => `<details class="dr-det"><summary><span class="chip acc">${l.qtd}</span> ${esc(l.local)} <span class="mut" style="font-weight:400">· ${l.categorias.length} categoria(s)</span></summary>
+        <ul class="dr-lista">${l.categorias.sort((a, c) => c.qtd - a.qtd).map(c => `<li>${esc(c.categoria)}: <b>${c.qtd}</b></li>`).join("")}</ul></details>`).join("")
+        : `<div class="empty">Nenhum animal no backup.</div>`}
+    </div>
+    <div class="panel"><h2>De onde vem o custo</h2>
+      ${drbTabela(["Parte", ">Valor"], [
+        `<tr><td>Estoque inicial (cadastro)</td><td class="v">${drR(r.inicial + r.cadastro)}</td></tr>`,
+        `<tr><td>Compras de gado</td><td class="v">${drR(r.compra - r.cadastro)}</td></tr>`,
+        `<tr><td>Gastos que entram no custo do gado</td><td class="v">${drR(r.producao)}</td></tr>`,
+        `<tr><td>Saíram com as vendas</td><td class="v">${r.cmv ? "−" + drR(r.cmv) : drR(0)}</td></tr>`,
+        `<tr><td>Saíram com mortes</td><td class="v">${r.perdas ? "−" + drR(r.perdas) : drR(0)}</td></tr>`,
+        `<tr class="sint"><td><b>Estoque a custo</b></td><td class="v"><b>${drR(r.estoque)}</b></td></tr>`])}
+      <p class="note">Regra do app do Ronei (aprovada em 28/10/2026): todo gasto que não é investimento, compra de gado ou acerto entre sócios entra no custo do gado. O Livro Razão, no regime de caixa, trata esses gastos como despesa do mês.</p>
+      ${drbDetalhe(r.avisos.length, "warn", "Avisos do cálculo", `<ul class="dr-lista">${r.avisos.slice(0, 60).map(x => `<li>${esc(x)}</li>`).join("")}${r.avisos.length > 60 ? `<li class="mut">e mais ${r.avisos.length - 60}</li>` : ""}</ul>`)}
+    </div>`;
+}
+
+function drbVerBens(ac, hoje) {
+  const bens = DRB.extras.filter(x => x.tipo === "ativo" && !x.baixado), tot = bens.reduce((s, x) => s + (drbC(x.valor) || 0), 0);
+  $("drb-corpo").innerHTML = `<div class="panel"><h2>Bens da sociedade · ${drR(tot)}</h2>
+    ${bens.length ? drbTabela(["Bem", "Tipo", ">Valor"], bens.map(x => `<tr><td>${esc(x.descricao || "")}</td><td>${esc(DRB_BENS[x.categoriaBem] || x.categoriaBem || "")}</td><td class="v">${fmtn(drbC(x.valor) || 0)}</td></tr>`))
+      : `<div class="empty">Nenhum bem cadastrado.</div>`}
+    <p class="note">Valores informados no app do Ronei, sem avaliação nova.</p></div>`;
+}
+
+function drbVerConferir(ac, hoje) {
+  const est = LL.filter(l => l.grp === DRD.centro);
+  const c = drbCasar(DRB, est, hoje);
+  const lr = l => `${linkLinha(l.linha) ? `<a href="${linkLinha(l.linha)}" target="_blank" rel="noopener">L${l.linha}</a>` : "L" + l.linha} ${drbFd(l.data)} ${esc(l.hist)} · <span class="num">${drR(l.valor)}</span> · parte do Ronei ${Math.round((l.parte || 0) * 100)}%`;
+  const rn = r => `<span class="code">${drbFd(r.data)}</span> ${esc(r.hist)} · <span class="num">${drR(r.valor)}</span> · pago por ${esc(r.socio)}${r.pendente ? " (em aberto)" : ""}`;
+  const lista = (arr, f) => `<ul class="dr-lista">${arr.slice(0, 80).map(x => `<li>${f(x)}</li>`).join("")}${arr.length > 80 ? `<li class="mut">e mais ${arr.length - 80}</li>` : ""}</ul>`;
+  const pares = cls => c.pares.filter(p => p.cls === cls);
+  const parLi = p => `${rn(p.r)}<br><span class="mut">↳ Livro Razão:</span> ${lr(p.l)}${p.motivo ? ` <span class="chip acc">${esc(p.motivo)}</span>` : ""}`;
+  $("drb-corpo").innerHTML = c.ini ? `
+    <div class="panel"><h2>Conferir com o Livro Razão · ${drbFd(c.ini)} a ${drbFd(c.fim)}</h2>
+      <p class="note" style="margin-top:0">Pares achados por valor (cheio ou metade) e data (até 5 dias de diferença), só na Estância. É uma sugestão: confira o nome antes de corrigir. O extrato do banco decide quando as duas bases discordam.</p>
+      <div class="tp-kpis">
+        <div class="kpi"><div class="l">Batem</div><div class="n pos">${c.cont.ok}</div><div class="h">valor cheio com parte do Ronei</div></div>
+        <div class="kpi"><div class="l">Metade com 0%</div><div class="n ${c.cont.metade0 ? "neg" : ""}">${c.cont.metade0}</div><div class="h">ficam fora do acerto do Livro Razão</div></div>
+        <div class="kpi"><div class="l">Só no app do Ronei</div><div class="n">${c.soRonei.length}</div><div class="h">sem par no Livro Razão</div></div>
+        <div class="kpi"><div class="l">Só no Livro Razão</div><div class="n">${c.soLR.length}</div><div class="h">Estância, mesmo período</div></div>
+      </div>
+      ${drbDetalhe(c.cont.metade0, "warn", "No Livro Razão está só a metade, com Parte do Ronei 0%", `<p class="note">Se o banco mostra o valor cheio, troque a linha para o valor cheio com 50%. Senão o acerto do Livro Razão fica menor do que o Ronei deve.</p>${lista(pares("metade0"), parLi)}`)}
+      ${drbDetalhe(c.cont.cheio0, "warn", "Valor cheio no Livro Razão, mas com Parte do Ronei 0%", `<p class="note">Se é gasto da sociedade, troque para 50%.</p>${lista(pares("cheio0"), parLi)}`)}
+      ${drbDetalhe(c.cont.roneiMetade, "acc", "O Ronei pagou; no Livro Razão está a metade", `<p class="note">Parece que o Deivid devolveu a parte dele ao Ronei. Isso não está no app do Ronei. Só o Deivid sabe confirmar.</p>${lista(pares("roneiMetade"), parLi)}`)}
+      ${drbDetalhe(c.cont.metade50, "warn", "Metade do valor no Livro Razão, já com parte do Ronei", `<p class="note">Assim o Ronei fica com um quarto do gasto. Confira o valor.</p>${lista(pares("metade50"), parLi)}`)}
+      ${drbDetalhe(c.cont.outro, "acc", "Pares para conferir à mão", `<p class="note">O valor e a data batem, mas o efeito no acerto pode ser outro. O motivo está em cada linha.</p>${lista(pares("outro"), parLi)}`)}
+      ${drbDetalhe(c.soRonei.length, "acc", "No app do Ronei e sem par no Livro Razão", `<p class="note">Os pagos pelo Ronei podem ir para "+ Lançar no acerto". Os pagos pelo Deivid deveriam estar no Livro Razão.</p>${lista(c.soRonei, rn)}`)}
+      ${drbDetalhe(c.soLR.length, "acc", "No Livro Razão (Estância) e sem par no app do Ronei", lista(c.soLR, lr))}
+      ${drbDetalhe(c.cont.ok, "ok", "Batem (valor cheio com parte do Ronei)", lista(pares("ok"), parLi))}
+    </div>` : `<div class="panel"><div class="empty">O backup não tem lançamentos para conferir.</div></div>`;
+}
+</script>
+<!-- /DR:JS -->
 <script>
 // ================= estrutura fixa do plano de contas (contas sintéticas) =================
 const SINTETICAS = {
@@ -1455,7 +2284,7 @@ function chamar(acao, dado) {
   if (DENTRO_DA_PLANILHA) {
     return new Promise((ok, falha) => {
       const r = google.script.run.withSuccessHandler(ok).withFailureHandler(e => falha(new Error(e && e.message ? e.message : String(e))));
-      ({ dados: () => r.getDados(), lancar: () => r.lancar(dado), transp: () => r.getTransp(), salvarTransp: () => r.salvarTransp(dado) })[acao]();
+      ({ dados: () => r.getDados(), lancar: () => r.lancar(dado), transp: () => r.getTransp(), salvarTransp: () => r.salvarTransp(dado), dr: () => r.getDR(), salvarDR: () => r.salvarDR(dado) })[acao]();
     });
   }
   return fetch(CONEXAO.url, {
@@ -1477,7 +2306,7 @@ function carregar(motivo) {
   if (!DENTRO_DA_PLANILHA && !CONEXAO.chave) { pedirAcesso(); return; }
   carregando = true;
   $("btn-atualizar").textContent = "Atualizando…";
-  Promise.all([chamar("dados"), recarregarTransp()]).then(([d]) => {
+  Promise.all([chamar("dados"), recarregarTransp(), recarregarDR()]).then(([d]) => {
     carregando = false; ultimaLeitura = Date.now();
     $("btn-atualizar").textContent = "Atualizar";
     try { montarModelo(d); } catch (e) { mostrarErro("Não consegui montar o painel com os dados da planilha: " + e.message); return; }
@@ -1540,7 +2369,7 @@ function abrir(v) { document.querySelector(`#tabs button[data-v="${v}"]`).click(
 
 // ================= modo simples (Deivid) x modo contador =================
 // O modo simples mostra só Lançar, Meus lançamentos e Resumo do mês, sem códigos de conta nem débito e crédito.
-const VIEWS_SIMPLES = ["lancar", "meus", "mes", "transp"], VIEWS_CONTADOR = ["resumo", "lancar", "diario", "contas", "veiculos", "transp", "razao", "balancete", "plano"];
+const VIEWS_SIMPLES = ["lancar", "meus", "mes", "transp", "dr"], VIEWS_CONTADOR = ["resumo", "lancar", "diario", "contas", "veiculos", "transp", "dr", "razao", "balancete", "plano"];
 const viewOk = v => (S.modo === "simples" ? VIEWS_SIMPLES : VIEWS_CONTADOR).includes(v);
 function aplicarModo() {
   document.body.classList.toggle("simples", S.modo === "simples");
@@ -2510,7 +3339,7 @@ function vMes() {
 // ================= navegação =================
 function render() {
   if (!Object.keys(C).length) return;
-  ({ resumo: vResumo, lancar: vLancar, meus: vMeus, mes: vMes, contas: vContas, veiculos: vVeiculos, balancete: vBalancete, razao: vRazao, diario: vDiario, plano: vPlano, transp: vTransp })[S.view]();
+  ({ resumo: vResumo, lancar: vLancar, meus: vMeus, mes: vMes, contas: vContas, veiculos: vVeiculos, balancete: vBalancete, razao: vRazao, diario: vDiario, plano: vPlano, transp: vTransp, dr: vDR })[S.view]();
 }
 // abre no modo simples, a não ser que este aparelho tenha escolhido o modo contador
 try { S.modo = localStorage.getItem("lr-modo") === "contador" ? "contador" : "simples"; S.view = localStorage.getItem("lr-view") || ""; } catch (e) {}
